@@ -1,14 +1,19 @@
-import { Module } from '@nestjs/common';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import databaseConfig from './config/database.config';
+import configuration from './config/configuration';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { APP_FILTER, APP_PIPE } from '@nestjs/core';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig],
+      load: [configuration],
+      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test' : '.env',
     }),
 
     TypeOrmModule.forRootAsync({
@@ -27,9 +32,23 @@ import databaseConfig from './config/database.config';
 
         autoLoadEntities: true,
 
-        synchronize: false,
+        synchronize: process.env.NODE_ENV === 'test',
       }),
     }),
+
+    UsersModule,
+    AuthModule,
+  ],
+  providers: [
+    { provide: APP_FILTER, useClass: GlobalExceptionFilter },
+    {
+      provide: APP_PIPE,
+      useValue: new ValidationPipe({
+        whitelist: true,
+        transform: true,
+        forbidNonWhitelisted: true,
+      }),
+    },
   ],
 })
 export class AppModule {}

@@ -1,30 +1,7 @@
 import * as React from 'react';
 
 import { cn } from '../lib/utils';
-
-interface ModalContextValue {
-  openName: string;
-  open: (name: string) => void;
-  close: () => void;
-}
-
-interface CloseProps {
-  children: React.ReactElement<{
-    onClick?: React.MouseEventHandler;
-  }>;
-}
-
-const ModalContext = React.createContext<ModalContextValue | null>(null);
-
-function useModal() {
-  const context = React.useContext(ModalContext);
-
-  if (!context) {
-    throw new Error('Modal components must be used inside <Modal>.');
-  }
-
-  return context;
-}
+import { ModalContext, useModal } from './ModalContext';
 
 interface ModalProps {
   children: React.ReactNode;
@@ -50,7 +27,9 @@ function Modal({ children }: ModalProps) {
 
 interface OpenProps {
   opens: string;
-  children: React.ReactElement<{ onClick?: React.MouseEventHandler }>;
+  children: React.ReactElement<{
+    onClick?: React.MouseEventHandler;
+  }>;
 }
 
 function Open({ opens, children }: OpenProps) {
@@ -111,6 +90,12 @@ function Window({ name, children, className }: WindowProps) {
       <div className="p-6">{children}</div>
     </dialog>
   );
+}
+
+interface CloseProps {
+  children: React.ReactElement<{
+    onClick?: React.MouseEventHandler;
+  }>;
 }
 
 function Close({ children }: CloseProps) {

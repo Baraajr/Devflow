@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { INestApplication } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import request from 'supertest';
@@ -83,7 +85,7 @@ describe('Auth Integration', () => {
     });
 
     it('should reject missing email', async () => {
-      const { email, ...data } = validUser;
+      const { email: _email, ...data } = validUser;
 
       await request(app.getHttpServer())
         .post(`${baseUrl}/register`)

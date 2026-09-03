@@ -7,9 +7,7 @@ function ProtectedRoute() {
 
   const { isAuthenticated, isLoading } = useAuth();
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  if (isLoading) return;
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;

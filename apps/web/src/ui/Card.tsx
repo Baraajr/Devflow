@@ -7,6 +7,11 @@ function Card({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       className={cn(
         'rounded-lg border bg-card text-card-foreground shadow-sm',
+        'transition-all duration-200',
+        'hover:-translate-y-1',
+        'hover:border-primary/30',
+        'hover:shadow-md',
+        'hover:cursor-pointer',
         className,
       )}
       {...props}

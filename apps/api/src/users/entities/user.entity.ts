@@ -3,9 +3,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { OrganizationMember } from '../../organization/entities/organization-members.entity';
 
 @Entity('users')
 export class User {
@@ -43,4 +45,7 @@ export class User {
   @ApiProperty()
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @OneToMany(() => OrganizationMember, (member) => member.user)
+  organizationMemberships: OrganizationMember[];
 }

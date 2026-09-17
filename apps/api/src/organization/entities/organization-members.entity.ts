@@ -1,6 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, CreateDateColumn, Entity, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
 import { OrganizationRole } from '../enums/organization-role.enum';
+import { User } from '../../users/entities/user.entity';
+import { Organization } from './organization.entity';
 
 @Entity('organization_members')
 export class OrganizationMember {
@@ -23,4 +32,12 @@ export class OrganizationMember {
   @ApiProperty()
   @CreateDateColumn({ name: 'joined_at' })
   joinedAt: Date;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @ManyToOne(() => Organization)
+  @JoinColumn({ name: 'organization_id' })
+  organization: Organization;
 }

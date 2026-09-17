@@ -5,11 +5,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import slugify from 'slugify';
 import * as crypto from 'crypto'; // Built-in Node.js module
+import { OrganizationMember } from './organization-members.entity';
 
 @Entity('organizations')
 export class Organization {
@@ -47,4 +49,7 @@ export class Organization {
 
     this.slug = `${baseSlug}-${randomSuffix}`;
   }
+
+  @OneToMany(() => OrganizationMember, (member) => member.organization)
+  members: OrganizationMember[];
 }

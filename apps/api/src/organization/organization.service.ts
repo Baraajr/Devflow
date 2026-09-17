@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 
@@ -13,6 +17,9 @@ export class OrganizationService {
   constructor(
     @InjectRepository(Organization)
     private readonly organizationRepository: Repository<Organization>,
+
+    @InjectRepository(OrganizationMember)
+    private readonly organizationMemberRepository: Repository<OrganizationMember>,
 
     private readonly dataSource: DataSource,
   ) {}
@@ -95,5 +102,121 @@ export class OrganizationService {
       .addGroupBy('member.user_id')
       .addGroupBy('member.role')
       .getRawMany();
+  }
+
+  async getOrgMembers(
+    userId: string,
+    organizationId: string,
+  ): Promise<OrganizationMember[]> {
+    const isMember = await this.organizationMemberRepository.exists({
+      where: {
+        organizationId,
+        userId,
+      },
+    });
+
+    if (!isMember) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    return this.organizationMemberRepository
+      .createQueryBuilder('member')
+      .innerJoinAndSelect('member.user', 'user')
+      .where('member.organization_id = :organizationId', {
+        organizationId,
+      })
+      .select([
+        'member.organizationId',
+        'member.userId',
+        'member.role',
+        'member.joinedAt',
+        'user.id',
+        'user.email',
+        'user.firstName',
+        'user.lastName',
+        'user.profileImage',
+      ])
+      .getMany();
+  }
+
+  async getOrganization(
+    userId: string,
+    organizationId: string,
+  ): Promise<Organization> {
+    const organization = await this.organizationRepository
+      .createQueryBuilder('organization')
+      .innerJoin(
+        OrganizationMember,
+        'member',
+        'member.organization_id = organization.id',
+      )
+      .where('organization.id = :organizationId', { organizationId })
+      .andWhere('member.user_id = :userId', { userId })
+      .select([
+        'organization.id',
+        'organization.name',
+        'organization.slug',
+        'organization.description',
+        'organization.createdAt',
+        'organization.updatedAt',
+      ])
+      .getOne();
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    return organization;
+  }
+
+  async deleteOrganization(
+    userId: string,
+    organizationId: string,
+  ): Promise<void> {
+    const member = await this.organizationMemberRepository.findOne({
+      where: {
+        organizationId,
+        userId,
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    if (member.role !== OrganizationRole.OWNER) {
+      throw new ConflictException(
+        'Only the organization owner can delete the organization',
+      );
+    }
+
+    await this.organizationRepository.delete(organizationId);
+  }
+
+  async leaveOrganization(
+    userId: string,
+    organizationId: string,
+  ): Promise<void> {
+    const member = await this.organizationMemberRepository.findOne({
+      where: {
+        organizationId,
+        userId,
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    if (member.role === OrganizationRole.OWNER) {
+      throw new ConflictException(
+        'The organization owner cannot leave the organization',
+      );
+    }
+
+    await this.organizationMemberRepository.delete({
+      organizationId,
+      userId,
+    });
   }
 }

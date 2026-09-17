@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { OrganizationModule } from './organization/organization.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 
     UsersModule,
     AuthModule,
+    OrganizationModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

@@ -10,6 +10,7 @@ import AppLayout from './ui/Applayout';
 import OrganizationsPage from './pages/OrganizationsPage';
 import OrganizationPage from './pages/OrganizationPage';
 import DashboardPage from './pages/DashboardPage';
+import OrganizationLayout from './ui/OrganizationLayout';
 
 function App() {
   return (
@@ -28,6 +29,13 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/organizations" element={<OrganizationsPage />} />
             <Route path="/organizations/:id" element={<OrganizationPage />} />
+
+            <Route
+              path="/organizations/:organizationId"
+              element={<OrganizationLayout />}
+            >
+              <Route index element={<OrganizationPage />} />
+            </Route>
           </Route>
         </Route>
 

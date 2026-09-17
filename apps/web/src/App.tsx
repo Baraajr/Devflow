@@ -6,7 +6,11 @@ import LandingPage from './pages/LandingPage';
 import ProtectedRoute from './ui/ProtectedRoute';
 import PublicRoute from './ui/PublicRoute';
 import { Toaster } from './ui/Toaster';
-import Applayout from './ui/Applayout';
+import AppLayout from './ui/Applayout';
+import OrganizationsPage from './pages/OrganizationsPage';
+import OrganizationPage from './pages/OrganizationPage';
+import DashboardPage from './pages/DashboardPage';
+import OrganizationLayout from './ui/OrganizationLayout';
 
 function App() {
   return (
@@ -21,13 +25,22 @@ function App() {
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
-          <Route element={<Applayout />}>
-            <Route path="/dashboard" element={<div>dashboard</div>} />
+          <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/organizations" element={<OrganizationsPage />} />
+            <Route path="/organizations/:id" element={<OrganizationPage />} />
+
+            <Route
+              path="/organizations/:organizationId"
+              element={<OrganizationLayout />}
+            >
+              <Route index element={<OrganizationPage />} />
+            </Route>
           </Route>
         </Route>
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
 
       <Toaster />

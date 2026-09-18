@@ -1,6 +1,6 @@
 import type { CreateOrgFormValues } from '../features/organization/organization.schema';
 import type { Organization } from '../types/organization';
-import type { User } from '../types/user';
+import type { OrganizationMember } from '../types/organizationMember';
 import type { UserOrganization } from '../types/UserOrganization';
 import { apiRequest } from './api';
 
@@ -33,7 +33,7 @@ export async function getOrganization(orgId: string) {
 }
 
 export async function getOrganizationMembers(orgId: string) {
-  return apiRequest<User[]>(`/organization/${orgId}/members`, {
+  return apiRequest<OrganizationMember[]>(`/organization/${orgId}/members`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',

@@ -10,5 +10,11 @@ export default () => ({
   auth: {
     accessSecret: process.env.JWT_ACCESS_SECRET,
     accessExpiresIn: Number(process.env.JWT_ACCESS_EXPIRES_IN),
+    invitationExpiresInSeconds: Number(
+      process.env.INVITATION_EXPIRES_IN_SECONDS,
+    ),
+  },
+  cookie: {
+    maxAge: Number(process.env.COOKIE_MAX_AGE),
   },
 });

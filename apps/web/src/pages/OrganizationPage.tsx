@@ -3,9 +3,14 @@ import { useOrganization } from '../hooks/useOrganization';
 import { useOrganizationMembers } from '../hooks/useOrganizationMembers';
 import { Spinner } from '../ui/Spinner';
 import Modal from '../ui/Modal';
+import { Button } from '../ui/Button';
+import InviteUserForm from '../features/invitation/InviteUserForm';
+import { useAuth } from '../hooks/useAuth';
 
 export default function OrganizationPage() {
   const { organizationId } = useParams();
+  const { user } = useAuth();
+  console.log(user);
 
   const {
     data: organization,
@@ -31,6 +36,12 @@ export default function OrganizationPage() {
     return <div>Failed to load members.</div>;
   }
 
+  const currentUserMember = members?.find(
+    (member) => member.userId === user?.id,
+  );
+
+  const isOwner = currentUserMember?.role === 'owner';
+
   return (
     <Modal>
       <div>
@@ -41,6 +52,14 @@ export default function OrganizationPage() {
               {organization?.name}
             </h1>
           </div>
+          {isOwner && (
+            <Modal.Open opens="invite-member">
+              <Button>Invite Member</Button>
+            </Modal.Open>
+          )}
+          <Modal.Window name="invite-member">
+            {organizationId && <InviteUserForm orgId={organizationId} />}
+          </Modal.Window>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

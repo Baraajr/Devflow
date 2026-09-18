@@ -16,6 +16,19 @@ jobs:
     name: API - Lint, Test & Build
     runs-on: ubuntu-latest
 
+    env:
+      NODE_ENV: test
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: devflow_test
+      JWT_ACCESS_SECRET: test-secret
+      JWT_ACCESS_EXPIRES_IN: 6300
+      COOKIE_MAX_AGE: 2592000000
+      INVITATION_EXPIRES_IN_SECONDS: 604800
+      FRONTEND_URL: http://localhost:5174
+
     services:
       postgres:
         image: postgres:16
@@ -54,43 +67,12 @@ jobs:
 
       - name: Run migrations
         run: npm run migration:run
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres
-          DB_NAME: devflow_test
-          JWT_ACCESS_SECRET: test-secret
-          JWT_ACCESS_EXPIRES_IN: 1h
-          COOKIE_MAX_AGE: 2592000000
-          INVITATION_EXPIRES_IN_DAYS: 7
 
       - name: Test
         run: npm run test
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres
-          DB_NAME: devflow_test
-          JWT_ACCESS_SECRET: test-secret
-          JWT_ACCESS_EXPIRES_IN: 1h
-          COOKIE_MAX_AGE: 2592000000
-          INVITATION_EXPIRES_IN_DAYS: 7
 
       - name: Build
         run: npm run build
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres
-          DB_NAME: devflow_test
-          JWT_ACCESS_SECRET: test-secret
-          JWT_ACCESS_EXPIRES_IN: 1h
-          COOKIE_MAX_AGE: 2592000000
-          INVITATION_EXPIRES_IN_DAYS: 7
-
   web:
     name: Web - Lint & Build
     runs-on: ubuntu-latest

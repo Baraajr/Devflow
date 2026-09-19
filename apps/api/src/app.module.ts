@@ -9,6 +9,7 @@ import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { OrganizationModule } from './organization/organization.module';
 import { InvitationModule } from './invitation/invitation.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { InvitationModule } from './invitation/invitation.module';
     AuthModule,
     OrganizationModule,
     InvitationModule,
+    MailModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

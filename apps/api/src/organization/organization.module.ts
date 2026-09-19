@@ -12,5 +12,6 @@ import { OrganizationMember } from './entities/organization-members.entity';
   ],
   controllers: [OrganizationController],
   providers: [OrganizationService],
+  exports: [OrganizationService],
 })
 export class OrganizationModule {}

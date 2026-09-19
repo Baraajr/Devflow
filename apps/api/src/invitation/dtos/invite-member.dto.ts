@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform, TransformFnParams } from 'class-transformer';
 import { IsEmail, IsEnum } from 'class-validator';
 
-import { InvitableOrganizationRole } from '../enums/invitable-organization-role.enum';
+import { InvitableOrganizationRole } from '../../organization/enums/invitable-organization-role.enum';
 
 export class InviteMemberDto {
   @ApiProperty({

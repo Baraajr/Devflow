@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 
 import { InvitationStatus } from '../enums/invitation-status.enum';
-import { InvitableOrganizationRole } from '../enums/invitable-organization-role.enum';
+import { InvitableOrganizationRole } from '../../organization/enums/invitable-organization-role.enum';
 
 @Entity('organization_invitations')
 export class OrganizationInvitation {

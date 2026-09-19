@@ -14,6 +14,7 @@ import { OrganizationMember } from '../organization/entities/organization-member
 import { OrganizationRole } from '../organization/enums/organization-role.enum';
 import { InviteMemberDto } from './dtos/invite-member.dto';
 import { UsersService } from '../users/users.service';
+import { OrganizationService } from '../organization/organization.service';
 
 @Injectable()
 export class InvitationService {
@@ -29,6 +30,8 @@ export class InvitationService {
     private readonly dataSource: DataSource,
 
     private readonly configService: ConfigService,
+
+    private readonly organizationService: OrganizationService,
   ) {}
 
   async inviteMember(
@@ -54,7 +57,17 @@ export class InvitationService {
       );
     }
 
-    // 2. Find the user being invited
+    // 2. Find the organization
+    const organization = await this.organizationService.getOrganization(
+      userId,
+      organizationId,
+    );
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    // 3. Find the user being invited
     const invitedUser = await this.usersService.findByEmail(
       dto.invitedUserEmail,
     );
@@ -63,7 +76,7 @@ export class InvitationService {
       throw new NotFoundException('User with this email does not exist');
     }
 
-    // 3. Prevent inviting an existing member
+    // 4. Prevent inviting an existing member
     const existingMember = await this.organizationMemberRepository.findOne({
       where: {
         organizationId,
@@ -77,7 +90,7 @@ export class InvitationService {
       );
     }
 
-    // 4. Prevent duplicate pending invitations
+    // 5. Prevent duplicate pending invitations
     const pendingInvitation = await this.invitationRepository.findOne({
       where: {
         organizationId,
@@ -92,7 +105,7 @@ export class InvitationService {
       );
     }
 
-    // 5. Create invitation
+    // 6. Create invitation
     const invitationExpiresInSeconds = this.configService.get<number>(
       'auth.invitationExpiresInSeconds',
     );
@@ -110,8 +123,12 @@ export class InvitationService {
       expiresAt: new Date(Date.now() + invitationExpiresInSeconds * 1000),
     });
 
-    // 6. Save invitation
-    return this.invitationRepository.save(invitation);
+    // 7. Save invitation
+    const savedInvitation = await this.invitationRepository.save(invitation);
+
+    //send email later
+
+    return savedInvitation;
   }
 
   async getUserInvitations(userId: string) {

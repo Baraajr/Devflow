@@ -3,8 +3,11 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -16,6 +19,8 @@ import { OrganizationService } from './organization.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 
 @ApiTags('Organizations')
 @UseGuards(JwtAuthGuard)
@@ -44,6 +49,19 @@ export class OrganizationController {
     return this.organizationService.getOrganization(user.id, organizationId);
   }
 
+  @Patch(':organizationId')
+  async updateOrganization(
+    @Param('organizationId', ParseUUIDPipe) organizationId: string,
+    @CurrentUser() user: User,
+    @Body() dto: UpdateOrganizationDto,
+  ): Promise<Organization> {
+    return this.organizationService.updateOrganization(
+      user.id,
+      organizationId,
+      dto,
+    );
+  }
+
   @Get(':organizationId/members')
   async getMembers(
     @Param('organizationId', ParseUUIDPipe) organizationId: string,
@@ -52,7 +70,23 @@ export class OrganizationController {
     return this.organizationService.getOrgMembers(user.id, organizationId);
   }
 
+  @Patch(':organizationId/members/:userId/role')
+  async updateMemberRole(
+    @Param('organizationId', ParseUUIDPipe) organizationId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @CurrentUser() user: User,
+    @Body() dto: UpdateMemberRoleDto,
+  ) {
+    return this.organizationService.updateMemberRole(
+      user.id,
+      organizationId,
+      userId,
+      dto.role,
+    );
+  }
+
   @Delete(':organizationId')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteOrganization(
     @Param('organizationId', ParseUUIDPipe) organizationId: string,
     @CurrentUser() user: User,
@@ -61,10 +95,25 @@ export class OrganizationController {
   }
 
   @Delete(':organizationId/members/me')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async leaveOrganization(
     @Param('organizationId', ParseUUIDPipe) organizationId: string,
     @CurrentUser() user: User,
   ): Promise<void> {
     return this.organizationService.leaveOrganization(user.id, organizationId);
+  }
+
+  @Delete(':organizationId/members/:userId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeMember(
+    @Param('organizationId', ParseUUIDPipe) organizationId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @CurrentUser() user: User,
+  ): Promise<void> {
+    return this.organizationService.removeMember(
+      user.id,
+      organizationId,
+      userId,
+    );
   }
 }

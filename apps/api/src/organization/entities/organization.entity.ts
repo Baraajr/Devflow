@@ -42,6 +42,10 @@ export class Organization {
   @BeforeInsert()
   @BeforeUpdate()
   generateSlug() {
+    if (!this.name) {
+      return;
+    }
+
     const baseSlug = slugify(this.name, { lower: true, strict: true });
 
     // Generates 4 random bytes (e.g., 'a1b2c3d4')

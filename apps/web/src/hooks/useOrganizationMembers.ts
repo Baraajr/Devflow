@@ -6,5 +6,6 @@ export function useOrganizationMembers(organizationId?: string) {
     queryKey: ['organization', organizationId, 'members'],
     queryFn: () => getOrganizationMembers(organizationId!),
     enabled: !!organizationId,
+    staleTime: 5 * 60 * 1000,
   });
 }

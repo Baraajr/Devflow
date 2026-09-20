@@ -37,7 +37,9 @@ export class OrganizationMember {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @ManyToOne(() => Organization)
+  @ManyToOne(() => Organization, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'organization_id' })
   organization: Organization;
 }

@@ -1,5 +1,7 @@
 import {
+  BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,6 +13,7 @@ import { Organization } from './entities/organization.entity';
 import { OrganizationMember } from './entities/organization-members.entity';
 import { OrganizationRole } from './enums/organization-role.enum';
 import { UserOrganization } from './dto/User-organization';
+import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -218,5 +221,143 @@ export class OrganizationService {
       organizationId,
       userId,
     });
+  }
+
+  async updateOrganization(
+    userId: string,
+    organizationId: string,
+    dto: UpdateOrganizationDto,
+  ): Promise<Organization> {
+    const organization = await this.organizationRepository.findOne({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    const membership = await this.organizationMemberRepository.findOne({
+      where: {
+        organizationId,
+        userId,
+      },
+    });
+
+    if (!membership) {
+      console.log('no member');
+      throw new ForbiddenException('You are not a member of this organization');
+    }
+
+    if (
+      membership.role !== OrganizationRole.OWNER &&
+      membership.role !== OrganizationRole.MANAGER
+    ) {
+      console.log('no owner');
+
+      throw new ForbiddenException(
+        'You do not have permission to update this organization',
+      );
+    }
+
+    Object.assign(organization, dto);
+
+    return this.organizationRepository.save(organization);
+  }
+
+  async updateMemberRole(
+    requesterId: string,
+    organizationId: string,
+    targetUserId: string,
+    role: OrganizationRole,
+  ): Promise<OrganizationMember> {
+    const requester = await this.organizationMemberRepository.findOne({
+      where: {
+        organizationId,
+        userId: requesterId,
+      },
+    });
+
+    if (!requester) {
+      throw new ForbiddenException('You are not a member of this organization');
+    }
+
+    if (requester.role !== OrganizationRole.OWNER) {
+      throw new ForbiddenException(
+        'Only the organization owner can change member roles',
+      );
+    }
+
+    if (role === OrganizationRole.OWNER) {
+      throw new BadRequestException('The owner role cannot be assigned');
+    }
+
+    const member = await this.organizationMemberRepository.findOne({
+      where: {
+        organizationId,
+        userId: targetUserId,
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Organization member not found');
+    }
+
+    if (member.role === OrganizationRole.OWNER) {
+      throw new BadRequestException('The owner role cannot be changed');
+    }
+
+    member.role = role;
+
+    return this.organizationMemberRepository.save(member);
+  }
+
+  async removeMember(
+    requesterId: string,
+    organizationId: string,
+    targetUserId: string,
+  ): Promise<void> {
+    const requester = await this.organizationMemberRepository.findOne({
+      where: {
+        organizationId,
+        userId: requesterId,
+      },
+    });
+
+    if (!requester) {
+      throw new ForbiddenException('You are not a member of this organization');
+    }
+
+    if (
+      requester.role !== OrganizationRole.OWNER &&
+      requester.role !== OrganizationRole.MANAGER
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to remove members',
+      );
+    }
+
+    const member = await this.organizationMemberRepository.findOne({
+      where: {
+        organizationId,
+        userId: targetUserId,
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Organization member not found');
+    }
+
+    if (member.role === OrganizationRole.OWNER) {
+      throw new BadRequestException('The organization owner cannot be removed');
+    }
+
+    if (
+      requester.role === OrganizationRole.MANAGER &&
+      member.role === OrganizationRole.MANAGER
+    ) {
+      throw new ForbiddenException('Managers cannot remove other managers');
+    }
+
+    await this.organizationMemberRepository.remove(member);
   }
 }

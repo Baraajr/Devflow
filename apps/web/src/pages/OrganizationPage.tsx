@@ -1,16 +1,22 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useOrganization } from '../hooks/useOrganization';
 import { useOrganizationMembers } from '../hooks/useOrganizationMembers';
 import { Spinner } from '../ui/Spinner';
 import Modal from '../ui/Modal';
 import { Button } from '../ui/Button';
-import InviteUserForm from '../features/invitation/InviteUserForm';
 import { useAuth } from '../hooks/useAuth';
+import ConfirmDialog from '../ui/ConfirmDialog';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { deleteOrganization } from '../services/organization.service';
+import { ORGANIZATIONS_QUERY_KEY } from '../hooks/useOrganizations';
+import { toast } from 'sonner';
+import UpdateOrganizationForm from '../features/organization/updateOrganizatiopnForm';
 
 export default function OrganizationPage() {
   const { organizationId } = useParams();
+  const navigate = useNavigate();
+
   const { user } = useAuth();
-  console.log(user);
 
   const {
     data: organization,
@@ -23,6 +29,26 @@ export default function OrganizationPage() {
     isPending: isLoadingMembers,
     isError: membersError,
   } = useOrganizationMembers(organizationId);
+
+  const queryClient = useQueryClient();
+
+  const { mutate: deleteOrg, isPending: isDeletingOrg } = useMutation({
+    mutationFn: deleteOrganization,
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ORGANIZATIONS_QUERY_KEY,
+      });
+
+      navigate('/organizations');
+
+      toast.success('Organization deleted successfully');
+    },
+
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
 
   if (isLoadingOrg || isLoadingMembers) {
     return <Spinner />;
@@ -45,38 +71,64 @@ export default function OrganizationPage() {
   return (
     <Modal>
       <div>
-        <div className="mb-6 flex justify-between">
+        <div className="mb-6 flex items-start justify-between">
           <div>
             <p className="text-sm text-muted-foreground">Organization</p>
+
             <h1 className="text-2xl font-semibold tracking-tight">
               {organization?.name}
             </h1>
+
+            {organization?.description && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {organization.description}
+              </p>
+            )}
           </div>
-          {isOwner && (
-            <Modal.Open opens="invite-member">
-              <Button>Invite Member</Button>
+
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              onClick={() =>
+                navigate(`/organizations/${organizationId}/members`)
+              }
+            >
+              Members
+            </Button>
+
+            <Modal.Open opens="update-org">
+              <Button>Update</Button>
             </Modal.Open>
-          )}
-          <Modal.Window name="invite-member">
-            {organizationId && <InviteUserForm orgId={organizationId} />}
-          </Modal.Window>
+
+            {isOwner && (
+              <Modal.Open opens="delete-org">
+                <Button variant="danger">Delete</Button>
+              </Modal.Open>
+            )}
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title="Projects" value="0" />
           <StatCard title="Issues" value="0" />
-
-          <StatCard
-            title="Members"
-            value={isLoadingMembers ? '...' : String(members?.length ?? 0)}
-          />
+          <StatCard title="Members" value={String(members?.length ?? 0)} />
           <StatCard title="Sprints" value="0" />
         </div>
 
-        <p className="mt-6 text-xs text-muted-foreground">
-          Organization ID: {organizationId}
-        </p>
-      </div>{' '}
+        <Modal.Window name="update-org">
+          {organizationId && <UpdateOrganizationForm orgId={organizationId} />}
+        </Modal.Window>
+
+        <Modal.Window name="delete-org">
+          {organization && (
+            <ConfirmDialog
+              resourceName={`Organization ${organization.name}`}
+              onConfirm={() => deleteOrg(organization.id)}
+              disabled={isDeletingOrg}
+            />
+          )}
+        </Modal.Window>
+      </div>
     </Modal>
   );
 }

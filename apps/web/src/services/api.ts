@@ -35,6 +35,13 @@ export async function apiRequest<T>(
     credentials: 'include',
   });
 
+  console.log('status:', response.status);
+  console.log('content-length:', response.headers.get('content-length'));
+  console.log('content-type:', response.headers.get('content-type'));
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
   const data = await response.json();
 
   if (!response.ok) {

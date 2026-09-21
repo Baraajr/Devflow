@@ -16,7 +16,6 @@ import { OrganizationRole } from '../organization/enums/organization-role.enum';
 import { InviteMemberDto } from './dtos/invite-member.dto';
 import { UsersService } from '../users/users.service';
 import { OrganizationService } from '../organization/organization.service';
-import { Organization } from '../organization/entities/organization.entity';
 
 @Injectable()
 export class InvitationService {
@@ -170,68 +169,50 @@ export class InvitationService {
   }
 
   async acceptInvitation(invitationId: string, userId: string) {
+    const invitation = await this.invitationRepository.findOne({
+      where: {
+        id: invitationId,
+        invitedUserId: userId,
+      },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (invitation.status !== InvitationStatus.PENDING) {
+      throw new ConflictException(
+        `Invitation is already ${invitation.status.toLowerCase()}`,
+      );
+    }
+
+    // Expiration must be committed before throwing.
+    if (invitation.expiresAt <= new Date()) {
+      invitation.status = InvitationStatus.EXPIRED;
+      await this.invitationRepository.save(invitation);
+
+      throw new ConflictException('Invitation has expired');
+    }
+
+    // Check before starting the transaction because this status change
+    // must persist even though we throw a ConflictException.
+    const existingMember = await this.organizationMemberRepository.findOne({
+      where: {
+        organizationId: invitation.organizationId,
+        userId,
+      },
+    });
+
+    if (existingMember) {
+      invitation.status = InvitationStatus.CANCELLED;
+      await this.invitationRepository.save(invitation);
+
+      throw new ConflictException(
+        'You are already a member of this organization',
+      );
+    }
+
     return this.dataSource.transaction(async (manager) => {
-      // 1. Find pending invitation belonging to current user
-      const invitation = await manager.findOne(OrganizationInvitation, {
-        where: {
-          id: invitationId,
-          invitedUserId: userId,
-        },
-      });
-
-      if (!invitation) {
-        throw new NotFoundException('Invitation not found');
-      }
-
-      if (invitation.status !== InvitationStatus.PENDING) {
-        throw new ConflictException(
-          `Invitation is already ${invitation.status.toLowerCase()}`,
-        );
-      }
-
-      // 2. Check expiration
-      if (invitation.expiresAt <= new Date()) {
-        invitation.status = InvitationStatus.EXPIRED;
-
-        await manager.save(OrganizationInvitation, invitation);
-
-        throw new ConflictException('Invitation has expired');
-      }
-
-      const organization = await manager.findOne(Organization, {
-        where: {
-          id: invitation.organizationId,
-        },
-      });
-
-      if (!organization) {
-        invitation.status = InvitationStatus.CANCELLED;
-        await manager.save(OrganizationInvitation, invitation);
-
-        throw new NotFoundException(
-          'The organization associated with this invitation no longer exists',
-        );
-      }
-
-      // 3. Prevent duplicate membership
-      const existingMember = await manager.findOne(OrganizationMember, {
-        where: {
-          organizationId: invitation.organizationId,
-          userId,
-        },
-      });
-
-      if (existingMember) {
-        invitation.status = InvitationStatus.CANCELLED;
-
-        await manager.save(OrganizationInvitation, invitation);
-
-        throw new ConflictException(
-          'You are already a member of this organization',
-        );
-      }
-
-      // 4. Create organization membership
       const member = manager.create(OrganizationMember, {
         organizationId: invitation.organizationId,
         userId,
@@ -240,7 +221,6 @@ export class InvitationService {
 
       await manager.save(OrganizationMember, member);
 
-      // 5. Mark invitation as accepted
       invitation.status = InvitationStatus.ACCEPTED;
 
       await manager.save(OrganizationInvitation, invitation);

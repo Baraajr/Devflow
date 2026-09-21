@@ -3,12 +3,16 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
 import { InvitationStatus } from '../enums/invitation-status.enum';
 import { InvitableOrganizationRole } from '../../organization/enums/invitable-organization-role.enum';
+import { User } from '../../users/entities/user.entity';
+import { Organization } from '../../organization/entities/organization.entity';
 
 @Entity('organization_invitations')
 export class OrganizationInvitation {
@@ -101,4 +105,12 @@ export class OrganizationInvitation {
     type: 'timestamp with time zone',
   })
   updatedAt: Date;
+
+  @ManyToOne(() => User, { nullable: false })
+  @JoinColumn({ name: 'invited_user_id' })
+  invitedUser: User;
+
+  @ManyToOne(() => Organization, { nullable: false })
+  @JoinColumn({ name: 'organization_id' })
+  organization: Organization;
 }

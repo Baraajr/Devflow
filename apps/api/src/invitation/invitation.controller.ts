@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
@@ -20,6 +23,7 @@ import { User } from '../users/entities/user.entity';
 export class InvitationController {
   constructor(private readonly invitationService: InvitationService) {}
 
+  // Invite a user to an organization
   @Post('organization/:organizationId')
   invite(
     @Param('organizationId', ParseUUIDPipe) organizationId: string,
@@ -29,11 +33,34 @@ export class InvitationController {
     return this.invitationService.inviteMember(dto, user.id, organizationId);
   }
 
+  // Get invitations received by the current user
   @Get()
   getUserInvitations(@CurrentUser() user: User) {
     return this.invitationService.getUserInvitations(user.id);
   }
 
+  // Get invitations sent for an organization
+  @Get('organization/:organizationId')
+  getOrganizationInvitations(
+    @Param('organizationId', ParseUUIDPipe) organizationId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.invitationService.getOrganizationInvitations(
+      organizationId,
+      user.id,
+    );
+  }
+
+  // Get a specific invitation
+  @Get(':invitationId')
+  getInvitation(
+    @Param('invitationId', ParseUUIDPipe) invitationId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.invitationService.getInvitation(invitationId, user.id);
+  }
+
+  // Accept invitation
   @Post(':invitationId/accept')
   acceptInvitation(
     @Param('invitationId', ParseUUIDPipe) invitationId: string,
@@ -42,11 +69,22 @@ export class InvitationController {
     return this.invitationService.acceptInvitation(invitationId, user.id);
   }
 
+  // Decline invitation
   @Post(':invitationId/decline')
   declineInvitation(
     @Param('invitationId', ParseUUIDPipe) invitationId: string,
     @CurrentUser() user: User,
   ) {
     return this.invitationService.declineInvitation(invitationId, user.id);
+  }
+
+  // Revoke/cancel invitation
+  @Delete(':invitationId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  revokeInvitation(
+    @Param('invitationId', ParseUUIDPipe) invitationId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.invitationService.revokeInvitation(invitationId, user.id);
   }
 }

@@ -12,6 +12,7 @@ import OrganizationPage from './pages/OrganizationPage';
 import DashboardPage from './pages/DashboardPage';
 import OrganizationLayout from './ui/OrganizationLayout';
 import OrganizationMembersPage from './pages/OrganizationMembersPage';
+import OrganizationInvitaionsPage from './pages/OrganizationInvitationsPage';
 
 function App() {
   return (
@@ -37,6 +38,10 @@ function App() {
             >
               <Route index element={<OrganizationPage />} />
               <Route path="members" element={<OrganizationMembersPage />} />
+              <Route
+                path="invitations"
+                element={<OrganizationInvitaionsPage />}
+              />
             </Route>
           </Route>
         </Route>

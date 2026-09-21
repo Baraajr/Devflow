@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -15,6 +16,7 @@ import { OrganizationRole } from '../organization/enums/organization-role.enum';
 import { InviteMemberDto } from './dtos/invite-member.dto';
 import { UsersService } from '../users/users.service';
 import { OrganizationService } from '../organization/organization.service';
+import { Organization } from '../organization/entities/organization.entity';
 
 @Injectable()
 export class InvitationService {
@@ -135,7 +137,31 @@ export class InvitationService {
     return this.invitationRepository.find({
       where: {
         invitedUserId: userId,
-        status: InvitationStatus.PENDING,
+      },
+      relations: {
+        invitedUser: true,
+        organization: true,
+      },
+      select: {
+        id: true,
+        organizationId: true,
+        invitedUserId: true,
+        invitedBy: true,
+        status: true,
+        role: true,
+        expiresAt: true,
+        createdAt: true,
+        updatedAt: true,
+
+        organization: {
+          name: true,
+        },
+        invitedUser: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
       },
       order: {
         createdAt: 'DESC',
@@ -150,12 +176,17 @@ export class InvitationService {
         where: {
           id: invitationId,
           invitedUserId: userId,
-          status: InvitationStatus.PENDING,
         },
       });
 
       if (!invitation) {
         throw new NotFoundException('Invitation not found');
+      }
+
+      if (invitation.status !== InvitationStatus.PENDING) {
+        throw new ConflictException(
+          `Invitation is already ${invitation.status.toLowerCase()}`,
+        );
       }
 
       // 2. Check expiration
@@ -165,6 +196,21 @@ export class InvitationService {
         await manager.save(OrganizationInvitation, invitation);
 
         throw new ConflictException('Invitation has expired');
+      }
+
+      const organization = await manager.findOne(Organization, {
+        where: {
+          id: invitation.organizationId,
+        },
+      });
+
+      if (!organization) {
+        invitation.status = InvitationStatus.CANCELLED;
+        await manager.save(OrganizationInvitation, invitation);
+
+        throw new NotFoundException(
+          'The organization associated with this invitation no longer exists',
+        );
       }
 
       // 3. Prevent duplicate membership
@@ -208,12 +254,17 @@ export class InvitationService {
       where: {
         id: invitationId,
         invitedUserId: userId,
-        status: InvitationStatus.PENDING,
       },
     });
 
     if (!invitation) {
       throw new NotFoundException('Invitation not found');
+    }
+
+    if (invitation.status !== InvitationStatus.PENDING) {
+      throw new ConflictException(
+        `Invitation is already ${invitation.status.toLowerCase()}`,
+      );
     }
 
     // Check expiration
@@ -229,5 +280,115 @@ export class InvitationService {
     invitation.status = InvitationStatus.DECLINED;
 
     return this.invitationRepository.save(invitation);
+  }
+
+  async getInvitation(
+    invitationId: string,
+    userId: string,
+  ): Promise<OrganizationInvitation> {
+    const invitation = await this.invitationRepository.findOne({
+      where: {
+        id: invitationId,
+        invitedUserId: userId,
+      },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    return invitation;
+  }
+
+  async getOrganizationInvitations(organizationId: string, userId: string) {
+    const member = await this.organizationMemberRepository.findOne({
+      where: {
+        organizationId,
+        userId,
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    if (
+      member.role !== OrganizationRole.OWNER &&
+      member.role !== OrganizationRole.MANAGER
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to view organization invitations',
+      );
+    }
+
+    return this.invitationRepository.find({
+      where: {
+        organizationId,
+      },
+      relations: {
+        invitedUser: true,
+      },
+      select: {
+        id: true,
+        organizationId: true,
+        invitedUserId: true,
+        invitedBy: true,
+        status: true,
+        role: true,
+        expiresAt: true,
+        createdAt: true,
+        updatedAt: true,
+
+        invitedUser: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
+  async revokeInvitation(invitationId: string, userId: string): Promise<void> {
+    const invitation = await this.invitationRepository.findOne({
+      where: {
+        id: invitationId,
+      },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    const member = await this.organizationMemberRepository.findOne({
+      where: {
+        organizationId: invitation.organizationId,
+        userId,
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    if (
+      member.role !== OrganizationRole.OWNER &&
+      member.role !== OrganizationRole.MANAGER
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to revoke invitations',
+      );
+    }
+
+    if (invitation.status !== InvitationStatus.PENDING) {
+      throw new BadRequestException('Only pending invitations can be revoked');
+    }
+
+    invitation.status = InvitationStatus.CANCELLED;
+
+    await this.invitationRepository.save(invitation);
   }
 }

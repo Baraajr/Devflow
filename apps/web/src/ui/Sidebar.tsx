@@ -7,6 +7,7 @@ import {
   ListTodo,
   Users,
   Building2,
+  Mail,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -46,6 +47,12 @@ export default function Sidebar() {
           href: `/organizations/${organizationId}/members`,
           icon: Users,
         },
+        {
+          label: 'Invitations',
+          href: `/organizations/${organizationId}/invitations`,
+          icon: Mail,
+        },
+
         {
           label: 'Settings',
           href: `/organizations/${organizationId}/settings`,

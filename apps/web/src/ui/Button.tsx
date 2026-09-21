@@ -3,9 +3,13 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { SpinnerMini } from './SpinnerMini';
 
 type ButtonVariant =
-  'primary' | 'secondary' | 'ghost' | 'danger' | 'danger-ghost';
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'danger'
+  | 'danger-ghost';
 
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -24,6 +28,7 @@ const variantStyles: Record<ButtonVariant, string> = {
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
+  xs: 'h-6 px-2 text-xs',
   sm: 'h-8 px-3 text-xs',
   md: 'h-9 px-4 text-sm',
   lg: 'h-10 px-5 text-sm',

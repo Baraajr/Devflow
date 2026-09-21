@@ -1,5 +1,6 @@
 import type { invitationFormValues } from '../features/invitation/invitation.schema';
 import { apiRequest } from './api';
+import type { Invitation } from '../types/invitaion';
 
 export async function inviteMember(
   organizationId: string,
@@ -15,7 +16,27 @@ export async function inviteMember(
 }
 
 export async function getInvitations() {
-  return apiRequest('/invitations', {
+  return apiRequest<Invitation[]>('/invitations', {
+    method: 'GET',
+  });
+}
+
+// Organization owner/manager
+
+export async function getOrganizationInvitations(
+  organizationId: string,
+): Promise<Invitation[]> {
+  return apiRequest<Invitation[]>(
+    `/invitations/organization/${organizationId}`,
+    {
+      method: 'GET',
+    },
+  );
+}
+
+// Invited user
+export async function getInvitation(invitationId: string) {
+  return apiRequest(`/invitations/${invitationId}`, {
     method: 'GET',
   });
 }
@@ -29,5 +50,12 @@ export async function acceptInvitation(invitationId: string) {
 export async function declineInvitation(invitationId: string) {
   return apiRequest(`/invitations/${invitationId}/decline`, {
     method: 'POST',
+  });
+}
+
+// Organization owner/manager
+export async function revokeInvitation(invitationId: string) {
+  return apiRequest(`/invitations/${invitationId}`, {
+    method: 'DELETE',
   });
 }

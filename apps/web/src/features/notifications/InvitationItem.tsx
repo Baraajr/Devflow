@@ -26,6 +26,9 @@ function InvitationItem({ invitation }: InvitationItemProps) {
     },
     onError: (err) => {
       toast.error(err.message);
+      queryClient.invalidateQueries({
+        queryKey: ['invitations'],
+      });
     },
   });
 
@@ -39,6 +42,9 @@ function InvitationItem({ invitation }: InvitationItemProps) {
       });
     },
     onError: (err) => {
+      queryClient.invalidateQueries({
+        queryKey: ['invitations'],
+      });
       toast.error(err.message);
     },
   });
@@ -54,7 +60,9 @@ function InvitationItem({ invitation }: InvitationItemProps) {
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-medium">{invitation.organization.name}</p>
+          <p className="text-sm font-medium">
+            {invitation.organization?.name ?? 'Organization no longer exists'}
+          </p>
 
           <p className="mt-1 text-xs text-muted-foreground">
             You've been invited as{' '}

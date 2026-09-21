@@ -12,6 +12,11 @@ import { cleanDatabase } from '../helpers/clean-database';
 
 import { OrganizationMember } from '../../src/organization/entities/organization-members.entity';
 import { OrganizationRole } from '../../src/organization/enums/organization-role.enum';
+import {
+  addOrganizationMember,
+  createAuthenticatedAgent,
+  createOrganization,
+} from '../helpers/helpers';
 
 describe('Organization Integration', () => {
   let app: INestApplication;
@@ -71,68 +76,10 @@ describe('Organization Integration', () => {
   });
 
   /**
-   * Registers a user and returns the authenticated agent.
-   */
-  /**
-   * Registers a user, logs them in to set the cookie, and returns the authenticated agent.
-   */
-  const createAuthenticatedAgent = async (
-    user: typeof owner,
-  ): Promise<request.Agent> => {
-    const agent = request.agent(app.getHttpServer());
-
-    // 1. Register the user
-    await agent.post('/api/v1/auth/register').send(user).expect(201);
-
-    // 2. Log in the user to receive the authentication cookie
-    await agent
-      .post('/api/v1/auth/login') // Adjust path if your login route is different (e.g., /auth/signin)
-      .send({
-        email: user.email,
-        password: user.password,
-      })
-      .expect(200);
-
-    return agent;
-  };
-
-  /**
-   * Creates an organization using the authenticated agent.
-   */
-  const createOrganization = async (
-    agent: request.Agent,
-    data = organization,
-  ) => {
-    return agent.post(baseUrl).send(data).expect(201);
-  };
-
-  /**
-   * Adds a user directly to an organization.
-   *
-   * This is intentional because organization membership is currently
-   * managed by the invitation flow, which is tested separately.
-   */
-  const addOrganizationMember = async (
-    organizationId: string,
-    userId: string,
-    role: OrganizationRole,
-  ) => {
-    const repository = dataSource.getRepository(OrganizationMember);
-
-    return repository.save(
-      repository.create({
-        organizationId,
-        userId,
-        role,
-      }),
-    );
-  };
-
-  /**
    * Registers a user and retrieves their ID through /auth/me.
    */
   const registerAndGetUserId = async (user: typeof owner): Promise<string> => {
-    const agent = await createAuthenticatedAgent(user);
+    const agent = await createAuthenticatedAgent(app, user);
 
     const response = await agent.get('/api/v1/auth/me').expect(200);
 
@@ -141,9 +88,9 @@ describe('Organization Integration', () => {
 
   describe('POST /organization', () => {
     it('should create an organization successfully', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
-      const response = await createOrganization(agent);
+      const response = await createOrganization(agent, organization);
 
       expect(response.body).toMatchObject({
         name: organization.name,
@@ -157,9 +104,9 @@ describe('Organization Integration', () => {
     });
 
     it('should create the authenticated user as the organization owner', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
-      const response = await createOrganization(agent);
+      const response = await createOrganization(agent, organization);
 
       const userResponse = await agent.get('/api/v1/auth/me').expect(200);
 
@@ -182,9 +129,9 @@ describe('Organization Integration', () => {
     });
 
     it('should reject duplicate organization names for the same user', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
-      await createOrganization(agent);
+      await createOrganization(agent, organization);
 
       const response = await agent
         .post(baseUrl)
@@ -198,9 +145,9 @@ describe('Organization Integration', () => {
     });
 
     it('should treat organization names as case-insensitive', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
-      await createOrganization(agent);
+      await createOrganization(agent, organization);
 
       await agent
         .post(baseUrl)
@@ -212,10 +159,10 @@ describe('Organization Integration', () => {
     });
 
     it('should allow different users to create organizations with the same name', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const memberAgent = await createAuthenticatedAgent(member);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const memberAgent = await createAuthenticatedAgent(app, member);
 
-      await createOrganization(ownerAgent);
+      await createOrganization(ownerAgent, organization);
 
       const response = await memberAgent
         .post(baseUrl)
@@ -236,13 +183,13 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an empty request body', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await agent.post(baseUrl).send({}).expect(400);
     });
 
     it('should reject an invalid organization name', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await agent
         .post(baseUrl)
@@ -254,7 +201,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an organization name that exceeds the maximum length', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await agent
         .post(baseUrl)
@@ -266,7 +213,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject a description that exceeds the maximum length', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await agent
         .post(baseUrl)
@@ -280,9 +227,9 @@ describe('Organization Integration', () => {
 
   describe('GET /organization', () => {
     it('should return the authenticated user organizations', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
-      await createOrganization(agent);
+      await createOrganization(agent, organization);
 
       const response = await agent.get(baseUrl).expect(200);
 
@@ -301,7 +248,7 @@ describe('Organization Integration', () => {
     });
 
     it('should return multiple organizations belonging to the user', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await createOrganization(agent, {
         name: 'Organization One',
@@ -330,7 +277,7 @@ describe('Organization Integration', () => {
     });
 
     it('should return an empty array when the user has no organizations', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       const response = await agent.get(baseUrl).expect(200);
 
@@ -338,10 +285,10 @@ describe('Organization Integration', () => {
     });
 
     it('should not return organizations belonging to another user', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const memberAgent = await createAuthenticatedAgent(member);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const memberAgent = await createAuthenticatedAgent(app, member);
 
-      await createOrganization(ownerAgent);
+      await createOrganization(ownerAgent, organization);
 
       const response = await memberAgent.get(baseUrl).expect(200);
 
@@ -355,9 +302,9 @@ describe('Organization Integration', () => {
 
   describe('PATCH /organization/:organizationId', () => {
     it('should allow the owner to update the organization', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
-      const createResponse = await createOrganization(agent);
+      const createResponse = await createOrganization(agent, organization);
 
       const response = await agent
         .patch(`${baseUrl}/${createResponse.body.id}`)
@@ -375,16 +322,17 @@ describe('Organization Integration', () => {
     });
 
     it('should allow a manager to update the organization', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const managerAgent = await createAuthenticatedAgent(manager);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const managerAgent = await createAuthenticatedAgent(app, manager);
 
       const managerResponse = await managerAgent
         .get('/api/v1/auth/me')
         .expect(200);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         managerResponse.body.id,
         OrganizationRole.MANAGER,
@@ -409,16 +357,20 @@ describe('Organization Integration', () => {
     ])(
       'should reject %s from updating the organization',
       async (role, user) => {
-        const ownerAgent = await createAuthenticatedAgent(owner);
-        const memberAgent = await createAuthenticatedAgent(user);
+        const ownerAgent = await createAuthenticatedAgent(app, owner);
+        const memberAgent = await createAuthenticatedAgent(app, user);
 
         const memberResponse = await memberAgent
           .get('/api/v1/auth/me')
           .expect(200);
 
-        const createResponse = await createOrganization(ownerAgent);
+        const createResponse = await createOrganization(
+          ownerAgent,
+          organization,
+        );
 
         await addOrganizationMember(
+          dataSource,
           createResponse.body.id,
           memberResponse.body.id,
           role,
@@ -434,10 +386,10 @@ describe('Organization Integration', () => {
     );
 
     it('should reject a user who is not an organization member', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const memberAgent = await createAuthenticatedAgent(member);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const memberAgent = await createAuthenticatedAgent(app, member);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await memberAgent
         .patch(`${baseUrl}/${createResponse.body.id}`)
@@ -448,7 +400,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject a non-existing organization', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       const fakeOrganizationId = '11111111-1111-4111-8111-111111111111';
 
@@ -461,7 +413,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an invalid organization ID', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await agent
         .patch(`${baseUrl}/invalid-id`)
@@ -472,9 +424,9 @@ describe('Organization Integration', () => {
     });
 
     it('should reject invalid update data', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
-      const createResponse = await createOrganization(agent);
+      const createResponse = await createOrganization(agent, organization);
 
       await agent
         .patch(`${baseUrl}/${createResponse.body.id}`)
@@ -498,12 +450,13 @@ describe('Organization Integration', () => {
 
   describe('PATCH /organization/:organizationId/members/:userId/role', () => {
     it('should allow the owner to change a member role', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
       const memberId = await registerAndGetUserId(member);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberId,
         OrganizationRole.DEVELOPER,
@@ -528,7 +481,7 @@ describe('Organization Integration', () => {
       OrganizationRole.DEVELOPER,
       OrganizationRole.VIEWER,
     ])('should reject %s from changing member roles', async (role) => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
 
       const user =
         role === OrganizationRole.MANAGER
@@ -537,15 +490,16 @@ describe('Organization Integration', () => {
             ? viewer
             : member;
 
-      const memberAgent = await createAuthenticatedAgent(user);
+      const memberAgent = await createAuthenticatedAgent(app, user);
 
       const memberResponse = await memberAgent
         .get('/api/v1/auth/me')
         .expect(200);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberResponse.body.id,
         role,
@@ -556,6 +510,7 @@ describe('Organization Integration', () => {
       );
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         targetUserId,
         OrganizationRole.DEVELOPER,
@@ -572,12 +527,13 @@ describe('Organization Integration', () => {
     });
 
     it('should reject assigning the owner role', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
       const memberId = await registerAndGetUserId(member);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberId,
         OrganizationRole.DEVELOPER,
@@ -592,11 +548,11 @@ describe('Organization Integration', () => {
     });
 
     it('should reject changing the organization owner role', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
 
       const ownerResponse = await ownerAgent.get('/api/v1/auth/me').expect(200);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await ownerAgent
         .patch(
@@ -609,9 +565,9 @@ describe('Organization Integration', () => {
     });
 
     it('should reject a non-existing target member', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       const fakeUserId = '22222222-2222-4222-8222-222222222222';
 
@@ -626,7 +582,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an invalid organization ID', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await agent
         .patch(
@@ -639,9 +595,9 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an invalid user ID', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
-      const createResponse = await createOrganization(agent);
+      const createResponse = await createOrganization(agent, organization);
 
       await agent
         .patch(`${baseUrl}/${createResponse.body.id}/members/invalid-id/role`)
@@ -652,12 +608,13 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an invalid role', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
       const memberId = await registerAndGetUserId(member);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberId,
         OrganizationRole.DEVELOPER,
@@ -687,12 +644,13 @@ describe('Organization Integration', () => {
 
   describe('DELETE /organization/:organizationId/members/:userId', () => {
     it('should allow the owner to remove a member', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
       const memberId = await registerAndGetUserId(member);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberId,
         OrganizationRole.DEVELOPER,
@@ -711,12 +669,13 @@ describe('Organization Integration', () => {
     });
 
     it('should allow the owner to remove a manager', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
       const managerId = await registerAndGetUserId(manager);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         managerId,
         OrganizationRole.MANAGER,
@@ -734,23 +693,25 @@ describe('Organization Integration', () => {
     });
 
     it('should allow a manager to remove a developer', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const managerAgent = await createAuthenticatedAgent(manager);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const managerAgent = await createAuthenticatedAgent(app, manager);
       const memberId = await registerAndGetUserId(member);
 
       const managerResponse = await managerAgent
         .get('/api/v1/auth/me')
         .expect(200);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         managerResponse.body.id,
         OrganizationRole.MANAGER,
       );
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberId,
         OrganizationRole.DEVELOPER,
@@ -768,23 +729,25 @@ describe('Organization Integration', () => {
     });
 
     it('should allow a manager to remove a viewer', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const managerAgent = await createAuthenticatedAgent(manager);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const managerAgent = await createAuthenticatedAgent(app, manager);
       const viewerId = await registerAndGetUserId(viewer);
 
       const managerResponse = await managerAgent
         .get('/api/v1/auth/me')
         .expect(200);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         managerResponse.body.id,
         OrganizationRole.MANAGER,
       );
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         viewerId,
         OrganizationRole.VIEWER,
@@ -802,23 +765,25 @@ describe('Organization Integration', () => {
     });
 
     it('should reject a manager from removing another manager', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const managerAgent = await createAuthenticatedAgent(manager);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const managerAgent = await createAuthenticatedAgent(app, manager);
       const secondManagerId = await registerAndGetUserId(viewer);
 
       const managerResponse = await managerAgent
         .get('/api/v1/auth/me')
         .expect(200);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         managerResponse.body.id,
         OrganizationRole.MANAGER,
       );
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         secondManagerId,
         OrganizationRole.MANAGER,
@@ -834,26 +799,31 @@ describe('Organization Integration', () => {
     it.each([OrganizationRole.DEVELOPER, OrganizationRole.VIEWER])(
       'should reject %s from removing members',
       async (role) => {
-        const ownerAgent = await createAuthenticatedAgent(owner);
+        const ownerAgent = await createAuthenticatedAgent(app, owner);
 
         const user = role === OrganizationRole.DEVELOPER ? member : viewer;
 
-        const memberAgent = await createAuthenticatedAgent(user);
+        const memberAgent = await createAuthenticatedAgent(app, user);
         const targetId = await registerAndGetUserId(manager);
 
         const memberResponse = await memberAgent
           .get('/api/v1/auth/me')
           .expect(200);
 
-        const createResponse = await createOrganization(ownerAgent);
+        const createResponse = await createOrganization(
+          ownerAgent,
+          organization,
+        );
 
         await addOrganizationMember(
+          dataSource,
           createResponse.body.id,
           memberResponse.body.id,
           role,
         );
 
         await addOrganizationMember(
+          dataSource,
           createResponse.body.id,
           targetId,
           OrganizationRole.DEVELOPER,
@@ -866,8 +836,8 @@ describe('Organization Integration', () => {
     );
 
     it('should reject removing the organization owner', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const managerAgent = await createAuthenticatedAgent(manager);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const managerAgent = await createAuthenticatedAgent(app, manager);
 
       const ownerResponse = await ownerAgent.get('/api/v1/auth/me').expect(200);
 
@@ -875,9 +845,10 @@ describe('Organization Integration', () => {
         .get('/api/v1/auth/me')
         .expect(200);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         managerResponse.body.id,
         OrganizationRole.MANAGER,
@@ -891,9 +862,9 @@ describe('Organization Integration', () => {
     });
 
     it('should reject removing a non-existing member', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       const fakeUserId = '22222222-2222-4222-8222-222222222222';
 
@@ -903,14 +874,15 @@ describe('Organization Integration', () => {
     });
 
     it('should reject a user who is not an organization member', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const memberAgent = await createAuthenticatedAgent(member);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const memberAgent = await createAuthenticatedAgent(app, member);
 
       const targetId = await registerAndGetUserId(manager);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         targetId,
         OrganizationRole.DEVELOPER,
@@ -922,7 +894,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an invalid organization ID', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await agent
         .delete(
@@ -932,9 +904,9 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an invalid user ID', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
-      const createResponse = await createOrganization(agent);
+      const createResponse = await createOrganization(agent, organization);
 
       await agent
         .delete(`${baseUrl}/${createResponse.body.id}/members/invalid-id`)
@@ -954,9 +926,9 @@ describe('Organization Integration', () => {
 
   describe('GET /organization/:organizationId', () => {
     it('should return an organization the user belongs to', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
-      const createResponse = await createOrganization(agent);
+      const createResponse = await createOrganization(agent, organization);
 
       const response = await agent
         .get(`${baseUrl}/${createResponse.body.id}`)
@@ -971,16 +943,16 @@ describe('Organization Integration', () => {
     });
 
     it('should reject access to an organization the user does not belong to', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const memberAgent = await createAuthenticatedAgent(member);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const memberAgent = await createAuthenticatedAgent(app, member);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await memberAgent.get(`${baseUrl}/${createResponse.body.id}`).expect(404);
     });
 
     it('should reject a non-existing organization', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       const fakeOrganizationId = '11111111-1111-4111-8111-111111111111';
 
@@ -988,7 +960,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an invalid organization ID', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await agent.get(`${baseUrl}/invalid-id`).expect(400);
     });
@@ -1004,12 +976,13 @@ describe('Organization Integration', () => {
 
   describe('GET /organization/:organizationId/members', () => {
     it('should return organization members', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
       const memberId = await registerAndGetUserId(member);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberId,
         OrganizationRole.DEVELOPER,
@@ -1046,19 +1019,21 @@ describe('Organization Integration', () => {
     });
 
     it('should return the correct member count', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
       const memberId = await registerAndGetUserId(member);
       const managerId = await registerAndGetUserId(manager);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberId,
         OrganizationRole.DEVELOPER,
       );
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         managerId,
         OrganizationRole.MANAGER,
@@ -1072,16 +1047,17 @@ describe('Organization Integration', () => {
     });
 
     it('should allow any organization member to view members', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const memberAgent = await createAuthenticatedAgent(member);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const memberAgent = await createAuthenticatedAgent(app, member);
 
       const memberResponse = await memberAgent
         .get('/api/v1/auth/me')
         .expect(200);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberResponse.body.id,
         OrganizationRole.DEVELOPER,
@@ -1095,10 +1071,10 @@ describe('Organization Integration', () => {
     });
 
     it('should reject users who are not organization members', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const memberAgent = await createAuthenticatedAgent(member);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const memberAgent = await createAuthenticatedAgent(app, member);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await memberAgent
         .get(`${baseUrl}/${createResponse.body.id}/members`)
@@ -1106,7 +1082,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an invalid organization ID', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await agent.get(`${baseUrl}/invalid-id/members`).expect(400);
     });
@@ -1122,9 +1098,9 @@ describe('Organization Integration', () => {
 
   describe('DELETE /organization/:organizationId', () => {
     it('should allow the owner to delete the organization', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
-      const createResponse = await createOrganization(agent);
+      const createResponse = await createOrganization(agent, organization);
 
       await agent.delete(`${baseUrl}/${createResponse.body.id}`);
 
@@ -1132,12 +1108,13 @@ describe('Organization Integration', () => {
     });
 
     it('should delete the organization and its memberships', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
       const memberId = await registerAndGetUserId(member);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberId,
         OrganizationRole.DEVELOPER,
@@ -1159,16 +1136,17 @@ describe('Organization Integration', () => {
     });
 
     it('should reject deletion by a non-owner member', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const memberAgent = await createAuthenticatedAgent(member);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const memberAgent = await createAuthenticatedAgent(app, member);
 
       const memberResponse = await memberAgent
         .get('/api/v1/auth/me')
         .expect(200);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberResponse.body.id,
         OrganizationRole.DEVELOPER,
@@ -1180,10 +1158,10 @@ describe('Organization Integration', () => {
     });
 
     it('should reject deletion by a user who is not a member', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const memberAgent = await createAuthenticatedAgent(member);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const memberAgent = await createAuthenticatedAgent(app, member);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await memberAgent
         .delete(`${baseUrl}/${createResponse.body.id}`)
@@ -1191,7 +1169,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject deletion of a non-existing organization', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       const fakeOrganizationId = '11111111-1111-4111-8111-111111111111';
 
@@ -1199,7 +1177,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an invalid organization ID', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await agent.delete(`${baseUrl}/invalid-id`).expect(400);
     });
@@ -1215,16 +1193,17 @@ describe('Organization Integration', () => {
 
   describe('DELETE /organization/:organizationId/members/me', () => {
     it('should allow a non-owner member to leave the organization', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const memberAgent = await createAuthenticatedAgent(member);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const memberAgent = await createAuthenticatedAgent(app, member);
 
       const memberResponse = await memberAgent
         .get('/api/v1/auth/me')
         .expect(200);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await addOrganizationMember(
+        dataSource,
         createResponse.body.id,
         memberResponse.body.id,
         OrganizationRole.DEVELOPER,
@@ -1243,9 +1222,9 @@ describe('Organization Integration', () => {
     });
 
     it('should reject when the organization owner tries to leave', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await ownerAgent
         .delete(`${baseUrl}/${createResponse.body.id}/members/me`)
@@ -1253,10 +1232,10 @@ describe('Organization Integration', () => {
     });
 
     it('should reject leaving an organization the user does not belong to', async () => {
-      const ownerAgent = await createAuthenticatedAgent(owner);
-      const memberAgent = await createAuthenticatedAgent(member);
+      const ownerAgent = await createAuthenticatedAgent(app, owner);
+      const memberAgent = await createAuthenticatedAgent(app, member);
 
-      const createResponse = await createOrganization(ownerAgent);
+      const createResponse = await createOrganization(ownerAgent, organization);
 
       await memberAgent
         .delete(`${baseUrl}/${createResponse.body.id}/members/me`)
@@ -1264,7 +1243,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject leaving a non-existing organization', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       const fakeOrganizationId = '11111111-1111-4111-8111-111111111111';
 
@@ -1274,7 +1253,7 @@ describe('Organization Integration', () => {
     });
 
     it('should reject an invalid organization ID', async () => {
-      const agent = await createAuthenticatedAgent(owner);
+      const agent = await createAuthenticatedAgent(app, owner);
 
       await agent.delete(`${baseUrl}/invalid-id/members/me`).expect(400);
     });

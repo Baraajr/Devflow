@@ -110,7 +110,7 @@ export class OrganizationInvitation {
   @JoinColumn({ name: 'invited_user_id' })
   invitedUser: User;
 
-  @ManyToOne(() => Organization, { nullable: false })
+  @ManyToOne(() => Organization, { onDelete: 'CASCADE', nullable: false })
   @JoinColumn({ name: 'organization_id' })
   organization: Organization;
 }

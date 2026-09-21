@@ -244,7 +244,6 @@ export class OrganizationService {
     });
 
     if (!membership) {
-      console.log('no member');
       throw new ForbiddenException('You are not a member of this organization');
     }
 
@@ -252,8 +251,6 @@ export class OrganizationService {
       membership.role !== OrganizationRole.OWNER &&
       membership.role !== OrganizationRole.MANAGER
     ) {
-      console.log('no owner');
-
       throw new ForbiddenException(
         'You do not have permission to update this organization',
       );

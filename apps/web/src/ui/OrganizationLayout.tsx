@@ -1,6 +1,6 @@
 import { Outlet, useParams } from 'react-router-dom';
 
-export default function OrganizationLayout() {
+function OrganizationLayout() {
   const { organizationId } = useParams();
 
   if (!organizationId) {
@@ -15,3 +15,4 @@ export default function OrganizationLayout() {
     </div>
   );
 }
+export default OrganizationLayout;

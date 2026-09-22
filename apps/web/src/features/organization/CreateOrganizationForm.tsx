@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '../../ui/Button';
 import { FormField } from '../../ui/FormField';
 import { Input } from '../../ui/Input';
-import { useCreateOrg } from '../../hooks/useCreateOrg';
 import { useModal } from '../../ui/ModalContext';
 
 import {
@@ -12,6 +11,7 @@ import {
   type CreateOrgFormValues,
 } from './organization.schema';
 import { Textarea } from '../../ui/TextArea';
+import { useCreateOrg } from '../../hooks/useOrganizations';
 
 function CreateOrganizationForm() {
   const createMutation = useCreateOrg();
@@ -84,8 +84,9 @@ function CreateOrganizationForm() {
           type="submit"
           disabled={createMutation.isPending}
           className="min-w-32"
+          loading={createMutation.isPending}
         >
-          {createMutation.isPending ? 'Creating...' : 'Create organization'}
+          Create organization
         </Button>
       </div>
     </form>

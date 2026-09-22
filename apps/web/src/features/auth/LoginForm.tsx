@@ -3,10 +3,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { loginSchema, type LoginFormValues } from './auth.schema';
-import { useLogin } from '../../hooks/useLogin';
 import { Button } from '../../ui/Button';
 import { FormField } from '../../ui/FormField';
 import { Input } from '../../ui/Input';
+import { useLogin } from '../../hooks/useAuth';
 
 function LoginForm() {
   const navigate = useNavigate();

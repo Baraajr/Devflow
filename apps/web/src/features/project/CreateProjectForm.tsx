@@ -22,6 +22,7 @@ function CreateProjectForm({ organizationId }: CreateProjectFormProps) {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
@@ -42,6 +43,7 @@ function CreateProjectForm({ organizationId }: CreateProjectFormProps) {
 
     try {
       await createMutation.mutateAsync(payload);
+      reset();
       close();
     } catch {
       // Error toast is already handled by useCreateProject.
@@ -119,8 +121,9 @@ function CreateProjectForm({ organizationId }: CreateProjectFormProps) {
           type="submit"
           disabled={createMutation.isPending}
           className="min-w-32"
+          loading={createMutation.isPending}
         >
-          {createMutation.isPending ? 'Creating...' : 'Create project'}
+          Create project
         </Button>
       </div>
     </form>

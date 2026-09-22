@@ -4,7 +4,7 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
 
-export default function AppLayout() {
+function AppLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
@@ -21,3 +21,5 @@ export default function AppLayout() {
     </div>
   );
 }
+
+export default AppLayout;

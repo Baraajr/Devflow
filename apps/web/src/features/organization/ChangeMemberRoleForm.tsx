@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '../../ui/Button';
 import Modal from '../../ui/Modal';
 
-import { type OrganizationRole } from '../../types/organizationMember';
+import { type OrganizationRole } from '../../types/organization';
 
 import { updateMemberRole } from '../../services/organization.service';
 import { useModal } from '../../ui/ModalContext';
@@ -45,7 +45,7 @@ const roles: {
   },
 ];
 
-export default function ChangeMemberRoleForm({
+function ChangeMemberRoleForm({
   organizationId,
   userId,
   currentRole,
@@ -135,11 +135,16 @@ export default function ChangeMemberRoleForm({
             </Button>
           </Modal.Close>
 
-          <Button type="submit" disabled={isPending || !isDirty}>
-            {isPending ? 'Updating...' : 'Update role'}
+          <Button
+            type="submit"
+            disabled={isPending || !isDirty}
+            loading={isPending}
+          >
+            Update role
           </Button>
         </div>
       </form>
     </div>
   );
 }
+export default ChangeMemberRoleForm;

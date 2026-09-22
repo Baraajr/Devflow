@@ -8,10 +8,11 @@ import {
   Users,
   Building2,
   Mail,
+  ArrowLeft,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
-export default function Sidebar() {
+function Sidebar() {
   const { user } = useAuth();
   const location = useLocation();
 
@@ -52,7 +53,6 @@ export default function Sidebar() {
           href: `/organizations/${organizationId}/invitations`,
           icon: Mail,
         },
-
         {
           label: 'Settings',
           href: `/organizations/${organizationId}/settings`,
@@ -70,20 +70,33 @@ export default function Sidebar() {
           href: '/organizations',
           icon: Building2,
         },
-        {
-          label: 'Settings',
-          href: '/settings',
-          icon: Settings,
-        },
       ];
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r bg-background md:block">
-      <div className="border-b p-4">
-        <h1 className="text-sm font-semibold">{user?.firstName}'s Workspace</h1>
+    <aside className="hidden w-64 shrink-0 border-r bg-surface md:block">
+      {/* Workspace header */}
+      <div className="flex h-16 items-center border-b px-5">
+        <div className="min-w-0">
+          <p className="text-xs font-medium text-muted-foreground">Workspace</p>
+          <h1 className="truncate text-sm font-semibold">
+            {user?.firstName}'s Workspace
+          </h1>
+        </div>
       </div>
 
-      <div className="sticky top-0 flex h-[calc(100vh-65px)] flex-col p-4">
+      <div className="sticky top-0 flex h-[calc(100vh-4rem)] flex-col px-3 py-4">
+        {/* Back navigation */}
+        {organizationId && (
+          <NavLink
+            to="/organizations"
+            className="mb-5 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+          >
+            <ArrowLeft className="size-4" />
+            <span>Organizations</span>
+          </NavLink>
+        )}
+
+        {/* Navigation */}
         <nav className="space-y-1">
           {navigation.map(({ label, href, icon: Icon, end }) => (
             <NavLink
@@ -92,19 +105,37 @@ export default function Sidebar() {
               end={end}
               className={({ isActive }) =>
                 [
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
                   isActive
-                    ? 'bg-surface-hover text-foreground'
+                    ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:bg-surface-hover hover:text-foreground',
                 ].join(' ')
               }
             >
-              <Icon className="size-4" />
-              {label}
+              {({ isActive }) => (
+                <>
+                  <Icon
+                    className={[
+                      'size-4 shrink-0 transition-colors',
+                      isActive
+                        ? 'text-primary'
+                        : 'text-muted-foreground group-hover:text-foreground',
+                    ].join(' ')}
+                  />
+                  <span>{label}</span>
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
+
+        {/* Bottom area */}
+        <div className="mt-auto border-t pt-4">
+          <p className="px-3 text-xs text-muted-foreground">DevFlow</p>
+        </div>
       </div>
     </aside>
   );
 }
+
+export default Sidebar;

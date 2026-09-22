@@ -1,60 +1,43 @@
 import type { CreateOrgFormValues } from '../features/organization/organization.schema';
-import type { Organization } from '../types/organization';
 import type {
+  Organization,
   OrganizationMember,
   OrganizationRole,
-} from '../types/organizationMember';
-import type { UserOrganization } from '../types/UserOrganization';
+  UserOrganization,
+} from '../types/organization';
 import { apiRequest } from './api';
 
-export async function getMyOrganizations() {
-  return apiRequest<UserOrganization[]>('/organization/', {
-    method: 'GEt',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+export async function getMyOrganizations(): Promise<UserOrganization[]> {
+  return apiRequest<UserOrganization[]>('/organization');
 }
 
-export async function createOrg(data: CreateOrgFormValues) {
-  return apiRequest('/organization/', {
+export async function createOrg(
+  data: CreateOrgFormValues,
+): Promise<Organization> {
+  return apiRequest<Organization>('/organization', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+    data,
   });
 }
 
-export async function getOrganization(orgId: string) {
-  return apiRequest<Organization>(`/organization/${orgId}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+export async function getOrganization(orgId: string): Promise<Organization> {
+  return apiRequest<Organization>(`/organization/${orgId}`);
 }
 
-export async function getOrganizationMembers(orgId: string) {
-  return apiRequest<OrganizationMember[]>(`/organization/${orgId}/members`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+export async function getOrganizationMembers(
+  orgId: string,
+): Promise<OrganizationMember[]> {
+  return apiRequest<OrganizationMember[]>(`/organization/${orgId}/members`);
 }
 
-export async function leaveOrganization(orgId: string) {
+export async function leaveOrganization(orgId: string): Promise<void> {
   return apiRequest<void>(`/organization/${orgId}/members/me`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-    },
   });
 }
 
 export async function deleteOrganization(orgId: string): Promise<void> {
-  await apiRequest(`/organization/${orgId}`, {
+  return apiRequest<void>(`/organization/${orgId}`, {
     method: 'DELETE',
   });
 }
@@ -67,20 +50,18 @@ export interface UpdateOrganizationData {
 export async function updateOrganization(
   orgId: string,
   data: UpdateOrganizationData,
-) {
-  return apiRequest(`/organization/${orgId}`, {
+): Promise<Organization> {
+  return apiRequest<Organization>(`/organization/${orgId}`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+    data,
   });
 }
+
 export async function removeOrganizationMember(
   organizationId: string,
   userId: string,
 ): Promise<void> {
-  await apiRequest(`/organization/${organizationId}/members/${userId}`, {
+  return apiRequest<void>(`/organization/${organizationId}/members/${userId}`, {
     method: 'DELETE',
   });
 }
@@ -94,11 +75,11 @@ export async function updateMemberRole(
   userId: string,
   data: UpdateMemberRoleData,
 ): Promise<void> {
-  await apiRequest(`/organization/${organizationId}/members/${userId}/role`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
+  return apiRequest<void>(
+    `/organization/${organizationId}/members/${userId}/role`,
+    {
+      method: 'PATCH',
+      data,
     },
-    body: JSON.stringify(data),
-  });
+  );
 }

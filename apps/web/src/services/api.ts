@@ -1,3 +1,5 @@
+import axios, { type AxiosRequestConfig } from 'axios';
+
 import type { ApiError } from '../types/api-error';
 
 interface ApiErrorResponse {
@@ -16,35 +18,36 @@ export class ApiRequestError extends Error {
     this.code = error.code;
     this.statusCode = error.statusCode;
     this.details = error.details;
+
+    Object.setPrototypeOf(this, ApiRequestError.prototype);
   }
 }
 
-const API_URL = import.meta.env.VITE_API_URL;
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
+});
 
 export async function apiRequest<T>(
-  input: RequestInfo | URL,
-  init?: RequestInit,
+  url: string,
+  config?: AxiosRequestConfig,
 ): Promise<T> {
-  const url =
-    typeof input === 'string' && input.startsWith('/')
-      ? `${API_URL}${input}`
-      : input;
+  try {
+    const response = await api.request<T>({
+      url,
+      ...config,
+    });
 
-  const response = await fetch(url, {
-    ...init,
-    credentials: 'include',
-  });
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError<ApiErrorResponse>(error)) {
+      const apiError = error.response?.data?.error;
 
-  if (response.status === 204) {
-    return undefined as T;
+      if (apiError) {
+        throw new ApiRequestError(apiError);
+      }
+    }
+
+    throw error;
   }
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    const errorResponse = data as ApiErrorResponse;
-    throw new ApiRequestError(errorResponse.error);
-  }
-
-  return data;
 }

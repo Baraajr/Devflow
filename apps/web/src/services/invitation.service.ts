@@ -1,6 +1,6 @@
 import type { invitationFormValues } from '../features/invitation/invitation.schema';
 import { apiRequest } from './api';
-import type { Invitation } from '../types/invitaion';
+import type { Invitation } from '../types/invitation';
 
 export async function inviteMember(
   organizationId: string,
@@ -8,10 +8,7 @@ export async function inviteMember(
 ) {
   return apiRequest(`/invitations/organization/${organizationId}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+    data,
   });
 }
 
@@ -20,8 +17,6 @@ export async function getInvitations() {
     method: 'GET',
   });
 }
-
-// Organization owner/manager
 
 export async function getOrganizationInvitations(
   organizationId: string,
@@ -34,7 +29,6 @@ export async function getOrganizationInvitations(
   );
 }
 
-// Invited user
 export async function getInvitation(invitationId: string) {
   return apiRequest(`/invitations/${invitationId}`, {
     method: 'GET',
@@ -53,7 +47,6 @@ export async function declineInvitation(invitationId: string) {
   });
 }
 
-// Organization owner/manager
 export async function revokeInvitation(invitationId: string) {
   return apiRequest(`/invitations/${invitationId}`, {
     method: 'DELETE',

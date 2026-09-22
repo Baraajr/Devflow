@@ -10,6 +10,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { OrganizationModule } from './organization/organization.module';
 import { InvitationModule } from './invitation/invitation.module';
 import { MailModule } from './mail/mail.module';
+import { ProjectModule } from './projects/project.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { MailModule } from './mail/mail.module';
     OrganizationModule,
     InvitationModule,
     MailModule,
+    ProjectModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

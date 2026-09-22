@@ -13,6 +13,8 @@ import DashboardPage from './pages/DashboardPage';
 import OrganizationLayout from './ui/OrganizationLayout';
 import OrganizationMembersPage from './pages/OrganizationMembersPage';
 import OrganizationInvitaionsPage from './pages/OrganizationInvitationsPage';
+import ProjectsPage from './pages/ProjectsPage';
+import ProjectPage from './pages/ProjectPage';
 
 function App() {
   return (
@@ -30,7 +32,6 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/organizations" element={<OrganizationsPage />} />
-            <Route path="/organizations/:id" element={<OrganizationPage />} />
 
             <Route
               path="/organizations/:organizationId"
@@ -38,6 +39,8 @@ function App() {
             >
               <Route index element={<OrganizationPage />} />
               <Route path="members" element={<OrganizationMembersPage />} />
+              <Route path="projects" element={<ProjectsPage />} />
+              <Route path="projects/details" element={<ProjectPage />} />
               <Route
                 path="invitations"
                 element={<OrganizationInvitaionsPage />}

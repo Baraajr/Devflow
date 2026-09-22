@@ -1,15 +1,21 @@
-name: CI
+name: API CI
 
 on:
   pull_request:
     branches:
       - develop
       - main
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/api-ci.yml"
 
   push:
     branches:
       - develop
       - main
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/api-ci.yml"
 
 jobs:
   api:
@@ -70,33 +76,6 @@ jobs:
 
       - name: Test
         run: npm run test
-
-      - name: Build
-        run: npm run build
-  web:
-    name: Web - Lint & Build
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: apps/web
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: apps/web/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
 
       - name: Build
         run: npm run build

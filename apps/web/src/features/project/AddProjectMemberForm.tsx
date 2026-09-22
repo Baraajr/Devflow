@@ -12,7 +12,7 @@ import {
   addprojectMemberSchema,
   type AddMemberFormValues,
 } from './project.schema';
-import type { OrganizationMember } from '../../types/organizationMember';
+import type { OrganizationMember } from '../../types/organization';
 
 interface AddProjectMemberFormProps {
   projectId: string;
@@ -98,8 +98,9 @@ function AddProjectMemberForm({
           type="submit"
           disabled={addMutation.isPending}
           className="min-w-32"
+          loading={addMutation.isPending}
         >
-          {addMutation.isPending ? 'Adding...' : 'Add member'}
+          Add member
         </Button>
       </div>
     </form>

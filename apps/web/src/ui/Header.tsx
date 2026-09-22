@@ -1,45 +1,28 @@
 import { Link } from 'react-router-dom';
 import { Button } from './Button';
-import { useLogout } from '../hooks/useLogout';
 import Logo from './Logo';
 import { Bell, Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import NotificationCenter from '../features/notifications/NotificationCenter';
-
-const navItems = [
-  { label: 'Projects', href: '/projects' },
-  { label: 'Issues', href: '/issues' },
-  { label: 'About', href: '/about' },
-];
+import { useLogout } from '../hooks/useAuth';
 
 function Header() {
   const [showNotification, setShowNotification] = useState(false);
-  const { logout, isLoggingout } = useLogout();
+  const { logout, isLoggingOut } = useLogout();
 
   const [isDark, setIsDark] = useState(() => {
-    return document.documentElement.classList.contains('dark');
+    return localStorage.getItem('theme') === 'dark';
   });
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
   }, [isDark]);
 
   return (
-    <header className="relative border-b">
+    <header className="relative border-b bg-surface">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Logo />
-
-        <nav className="hidden items-center gap-6 md:flex">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
 
         <div className="flex items-center gap-4">
           <Button
@@ -50,12 +33,13 @@ function Header() {
           >
             <Bell size={18} />
 
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
+            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-danger" />
           </Button>
 
           {showNotification && (
             <NotificationCenter onClose={() => setShowNotification(false)} />
           )}
+
           <Button
             variant="ghost"
             onClick={() => setIsDark((prev) => !prev)}
@@ -74,7 +58,7 @@ function Header() {
           <Button
             variant="danger-ghost"
             onClick={() => logout()}
-            loading={isLoggingout}
+            loading={isLoggingOut}
           >
             Logout
           </Button>

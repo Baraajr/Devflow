@@ -12,7 +12,7 @@ interface ConfirmDialogProps {
   disabled?: boolean;
 }
 
-export default function ConfirmDialog({
+function ConfirmDialog({
   resourceName,
   title,
   description = 'This action cannot be undone.',
@@ -45,3 +45,5 @@ export default function ConfirmDialog({
     </div>
   );
 }
+
+export default ConfirmDialog;

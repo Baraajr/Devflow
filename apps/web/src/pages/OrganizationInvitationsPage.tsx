@@ -1,9 +1,10 @@
 import Modal from '../ui/Modal';
-import OrganizationInvitationsContent from '../features/invitation/OrganizationInvitationsContent';
+import OrganizationInvitations from '../features/invitation/OrganizationInvitations';
+
 function OrganizationInvitationsPage() {
   return (
     <Modal>
-      <OrganizationInvitationsContent />
+      <OrganizationInvitations />
     </Modal>
   );
 }

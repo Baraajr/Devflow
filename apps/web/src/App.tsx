@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -6,7 +6,7 @@ import LandingPage from './pages/LandingPage';
 import ProtectedRoute from './ui/ProtectedRoute';
 import PublicRoute from './ui/PublicRoute';
 import { Toaster } from './ui/Toaster';
-import AppLayout from './ui/Applayout';
+import AppLayout from './ui/AppLayout';
 import OrganizationsPage from './pages/OrganizationsPage';
 import OrganizationPage from './pages/OrganizationPage';
 import DashboardPage from './pages/DashboardPage';
@@ -15,6 +15,7 @@ import OrganizationMembersPage from './pages/OrganizationMembersPage';
 import OrganizationInvitaionsPage from './pages/OrganizationInvitationsPage';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectPage from './pages/ProjectPage';
+import NotFoundPage from './ui/NotFoundPage';
 
 function App() {
   return (
@@ -50,7 +51,7 @@ function App() {
         </Route>
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
 
       <Toaster />

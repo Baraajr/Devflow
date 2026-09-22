@@ -6,12 +6,12 @@ import { FormField } from '../../ui/FormField';
 import { Input } from '../../ui/Input';
 import { Textarea } from '../../ui/TextArea';
 import { useModal } from '../../ui/ModalContext';
-import { useUpdateOrganization } from '../../hooks/useUpdateOrganization';
 
 import {
   createOrgSchema,
   type CreateOrgFormValues,
 } from './organization.schema';
+import { useUpdateOrganization } from '../../hooks/useOrganizations';
 
 interface UpdateOrganizationFormProps {
   orgId: string;
@@ -92,8 +92,9 @@ function UpdateOrganizationForm({ orgId }: UpdateOrganizationFormProps) {
           type="submit"
           disabled={updateMutation.isPending}
           className="min-w-32"
+          loading={updateMutation.isPending}
         >
-          {updateMutation.isPending ? 'Updating...' : 'Update organization'}
+          Update organization
         </Button>
       </div>
     </form>

@@ -6,7 +6,7 @@ import { FormField } from '../../ui/FormField';
 import { Input } from '../../ui/Input';
 import { useModal } from '../../ui/ModalContext';
 
-import { useInviteMember } from '../../hooks/useInviteMember';
+import { useInviteMember } from '../../hooks/useInvitations';
 import {
   invitationSchema,
   type invitationFormValues,
@@ -93,8 +93,9 @@ function InviteUserForm({ orgId }: InviteUserFormProps) {
           type="submit"
           disabled={inviteMutation.isPending}
           className="min-w-32"
+          loading={inviteMutation.isPending}
         >
-          {inviteMutation.isPending ? 'Sending...' : 'Send invitation'}
+          Send invitation
         </Button>
       </div>
     </form>

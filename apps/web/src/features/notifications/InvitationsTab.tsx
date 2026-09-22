@@ -1,19 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
 import { Clock } from 'lucide-react';
 
-import { getInvitations } from '../../services/invitation.service';
 import InvitationItem from './InvitationItem';
 import { Spinner } from '../../ui/Spinner';
+import { useInvitations } from '../../hooks/useInvitations';
 
 function InvitationsTab() {
-  const {
-    data: invitations = [],
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ['invitations'],
-    queryFn: getInvitations,
-  });
+  const { data: invitations = [], isLoading, isError } = useInvitations();
 
   if (isLoading) {
     return (

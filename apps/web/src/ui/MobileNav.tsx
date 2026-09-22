@@ -19,7 +19,7 @@ const navigation = [
   },
 ];
 
-export default function MobileNav() {
+function MobileNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-background md:hidden">
       <div className="grid grid-cols-3">
@@ -46,3 +46,5 @@ export default function MobileNav() {
     </nav>
   );
 }
+
+export default MobileNav;

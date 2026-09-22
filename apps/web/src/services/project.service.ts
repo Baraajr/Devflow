@@ -4,16 +4,20 @@ import type {
   AddProjectMemberInput,
   CreateProjectInput,
   Project,
-  ProjectListResponse,
   ProjectMember,
   ProjectMembers,
   UpdateProjectInput,
 } from '../types/project';
 
-export function getProjects(
-  organizationId: string,
-): Promise<ProjectListResponse> {
-  return apiRequest<ProjectListResponse>(
+export interface ProjectsResponse {
+  data: Project[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export function getProjects(organizationId: string): Promise<ProjectsResponse> {
+  return apiRequest<ProjectsResponse>(
     `/organizations/${organizationId}/projects`,
   );
 }
@@ -26,13 +30,9 @@ export function createProject(
   organizationId: string,
   data: CreateProjectInput,
 ): Promise<Project> {
-  console.log(data);
   return apiRequest<Project>(`/organizations/${organizationId}/projects`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+    data,
   });
 }
 
@@ -42,10 +42,7 @@ export function updateProject(
 ): Promise<Project> {
   return apiRequest<Project>(`/projects/${projectId}`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+    data,
   });
 }
 
@@ -67,10 +64,7 @@ export function addProjectMember(
 ): Promise<ProjectMember> {
   return apiRequest<ProjectMember>(`/projects/${projectId}/members`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+    data,
   });
 }
 
@@ -83,10 +77,7 @@ export function updateProjectMemberRole(
     `/projects/${projectId}/members/${memberUserId}`,
     {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ role }),
+      data: { role },
     },
   );
 }

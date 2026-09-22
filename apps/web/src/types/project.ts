@@ -28,6 +28,7 @@ export interface ProjectMember {
   projectId: string;
   userId: string;
   role: ProjectRole;
+  user: User;
 }
 
 export interface CreateProjectInput {
@@ -45,11 +46,4 @@ export interface UpdateProjectInput {
 export interface AddProjectMemberInput {
   userId: string;
   role: ProjectRole;
-}
-
-export interface ProjectListResponse {
-  data: Project[];
-  total: number;
-  page: number;
-  limit: number;
 }

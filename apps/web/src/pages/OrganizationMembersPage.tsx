@@ -1,10 +1,10 @@
 import Modal from '../ui/Modal';
-import OrganizationMembersContent from '../features/organization/OrganizationMembersContent';
+import OrganizationMembers from '../features/organization/OrganizationMembers';
 
 function OrganizationMembersPage() {
   return (
     <Modal>
-      <OrganizationMembersContent />
+      <OrganizationMembers />
     </Modal>
   );
 }

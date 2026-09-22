@@ -1,10 +1,11 @@
-import ProjectPageContent from '../features/project/ProjectPageContent';
+import Project from '../features/project/Project';
 import Modal from '../ui/Modal';
 
-export default function ProjectPage() {
+function ProjectPage() {
   return (
     <Modal>
-      <ProjectPageContent />
+      <Project />
     </Modal>
   );
 }
+export default ProjectPage;

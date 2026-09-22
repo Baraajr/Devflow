@@ -39,7 +39,7 @@ const roles: {
   },
 ];
 
-export default function ChangeMemberRoleForm({
+function ChangeMemberRoleForm({
   projectId,
   userId,
   currentRole,
@@ -122,3 +122,4 @@ export default function ChangeMemberRoleForm({
     </div>
   );
 }
+export default ChangeMemberRoleForm;

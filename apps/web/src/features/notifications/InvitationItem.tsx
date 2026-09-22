@@ -1,53 +1,17 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-
-import {
-  acceptInvitation,
-  declineInvitation,
-} from '../../services/invitation.service';
 import { Button } from '../../ui/Button';
-import type { Invitation } from '../../types/invitaion';
+import type { Invitation } from '../../types/invitation';
+import {
+  useAcceptInvitation,
+  useDeclineInvitation,
+} from '../../hooks/useInvitations';
 
 interface InvitationItemProps {
   invitation: Invitation;
 }
 
 function InvitationItem({ invitation }: InvitationItemProps) {
-  const queryClient = useQueryClient();
-
-  const acceptMutation = useMutation({
-    mutationFn: () => acceptInvitation(invitation.id),
-    onSuccess: () => {
-      toast.success('Invitation accepted');
-
-      queryClient.invalidateQueries({
-        queryKey: ['invitations'],
-      });
-    },
-    onError: (err) => {
-      toast.error(err.message);
-      queryClient.invalidateQueries({
-        queryKey: ['invitations'],
-      });
-    },
-  });
-
-  const declineMutation = useMutation({
-    mutationFn: () => declineInvitation(invitation.id),
-    onSuccess: () => {
-      toast.success('Invitation declined');
-
-      queryClient.invalidateQueries({
-        queryKey: ['invitations'],
-      });
-    },
-    onError: (err) => {
-      queryClient.invalidateQueries({
-        queryKey: ['invitations'],
-      });
-      toast.error(err.message);
-    },
-  });
+  const acceptMutation = useAcceptInvitation();
+  const declineMutation = useDeclineInvitation();
 
   const isPending = invitation.status === 'pending';
   const isMutating = acceptMutation.isPending || declineMutation.isPending;
@@ -88,7 +52,7 @@ function InvitationItem({ invitation }: InvitationItemProps) {
             variant="primary"
             loading={acceptMutation.isPending}
             disabled={isMutating}
-            onClick={() => acceptMutation.mutate()}
+            onClick={() => acceptMutation.mutate(invitation.id)}
           >
             Accept
           </Button>
@@ -98,7 +62,7 @@ function InvitationItem({ invitation }: InvitationItemProps) {
             variant="ghost"
             loading={declineMutation.isPending}
             disabled={isMutating}
-            onClick={() => declineMutation.mutate()}
+            onClick={() => declineMutation.mutate(invitation.id)}
           >
             Decline
           </Button>

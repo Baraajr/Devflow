@@ -1,7 +1,7 @@
 import EmptyState from '../features/organization/EmptyState';
-import OrganizationGrid from '../features/organization/OrganizationGrid';
+import Organizations from '../features/organization/Organizations';
 import TopBar from '../features/organization/TopBar';
-import useOrganizations from '../hooks/useOrganizations';
+import { useOrganizations } from '../hooks/useOrganizations';
 import Modal from '../ui/Modal';
 import OrganizationsSkeleton from '../ui/OrganizationsSkeleton';
 
@@ -24,7 +24,7 @@ function OrganizationsPage() {
         {organizations?.length === 0 ? (
           <EmptyState />
         ) : (
-          <OrganizationGrid organizations={organizations ?? []} />
+          <Organizations organizations={organizations ?? []} />
         )}
       </div>
     </Modal>

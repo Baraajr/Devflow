@@ -6,31 +6,25 @@ import type {
 import type { User } from '../types/user';
 import { apiRequest } from './api';
 
-export function login(data: LoginFormValues) {
+export function login(data: LoginFormValues): Promise<User> {
   return apiRequest<User>('/auth/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+    data,
   });
 }
 
-export function register(data: RegisterFormValues) {
+export function register(data: RegisterFormValues): Promise<User> {
   return apiRequest<User>('/auth/register', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+    data,
   });
 }
 
-export function getCurrentUser() {
+export function getCurrentUser(): Promise<User> {
   return apiRequest<User>('/auth/me');
 }
 
-export function logout() {
+export function logout(): Promise<{ message: string }> {
   return apiRequest<{ message: string }>('/auth/logout', {
     method: 'POST',
   });

@@ -156,10 +156,10 @@ export function useUpdateProjectMemberRole(projectId: string) {
       role: ProjectMember['role'];
     }) => updateProjectMemberRole(projectId, memberUserId, role),
     onSuccess: () => {
+      close();
       queryClient.invalidateQueries({
         queryKey: projectKeys.members(projectId),
       });
-      close();
       toast.success('Member role updated successfully');
     },
     onError: (err) => {

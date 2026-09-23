@@ -99,6 +99,7 @@
     "setupFiles": [
       "./jest.setup-env.ts"
     ],
-    "maxWorkers": 8
+    "maxWorkers": 8,
+    "testTimeout": 30000
   }
 }

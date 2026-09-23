@@ -42,14 +42,9 @@ export async function deleteOrganization(orgId: string): Promise<void> {
   });
 }
 
-export interface UpdateOrganizationData {
-  name?: string;
-  description?: string;
-}
-
 export async function updateOrganization(
   orgId: string,
-  data: UpdateOrganizationData,
+  data: CreateOrgFormValues,
 ): Promise<Organization> {
   return apiRequest<Organization>(`/organization/${orgId}`, {
     method: 'PATCH',

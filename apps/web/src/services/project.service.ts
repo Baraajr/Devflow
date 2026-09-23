@@ -1,13 +1,11 @@
 import { apiRequest } from './api';
 
+import type { Project, ProjectMember, ProjectMembers } from '../types/project';
 import type {
-  AddProjectMemberInput,
-  CreateProjectInput,
-  Project,
-  ProjectMember,
-  ProjectMembers,
-  UpdateProjectInput,
-} from '../types/project';
+  AddMemberFormValues,
+  ProjectFormValues,
+  UpdateProjectFormValues,
+} from '../features/project/project.schema';
 
 export interface ProjectsResponse {
   data: Project[];
@@ -28,7 +26,7 @@ export function getProject(projectId: string): Promise<Project> {
 
 export function createProject(
   organizationId: string,
-  data: CreateProjectInput,
+  data: ProjectFormValues,
 ): Promise<Project> {
   return apiRequest<Project>(`/organizations/${organizationId}/projects`, {
     method: 'POST',
@@ -38,7 +36,7 @@ export function createProject(
 
 export function updateProject(
   projectId: string,
-  data: UpdateProjectInput,
+  data: UpdateProjectFormValues,
 ): Promise<Project> {
   return apiRequest<Project>(`/projects/${projectId}`, {
     method: 'PATCH',
@@ -60,7 +58,7 @@ export function getProjectMembers(
 
 export function addProjectMember(
   projectId: string,
-  data: AddProjectMemberInput,
+  data: AddMemberFormValues,
 ): Promise<ProjectMember> {
   return apiRequest<ProjectMember>(`/projects/${projectId}/members`, {
     method: 'POST',

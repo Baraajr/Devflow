@@ -30,20 +30,3 @@ export interface ProjectMember {
   role: ProjectRole;
   user: User;
 }
-
-export interface CreateProjectInput {
-  name: string;
-  key: string;
-  description?: string;
-}
-
-export interface UpdateProjectInput {
-  name?: string;
-  key?: string;
-  description?: string | null;
-}
-
-export interface AddProjectMemberInput {
-  userId: string;
-  role: ProjectRole;
-}

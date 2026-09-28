@@ -12,21 +12,12 @@ export interface Project {
   createdAt: string;
   updatedAt: string;
 }
-export interface ProjectMembers {
+export interface ProjectMember {
   projectId: string;
   userId: string;
   organizationId: string;
   role: ProjectRole;
   joinedAt: string;
   project: Project;
-  user: User;
-}
-
-export interface ProjectMember {
-  id?: string;
-  organizationId: string;
-  projectId: string;
-  userId: string;
-  role: ProjectRole;
   user: User;
 }

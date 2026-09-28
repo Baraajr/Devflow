@@ -103,8 +103,7 @@ function Projects() {
               {projects.map((project) => (
                 <NavLink
                   key={project.id}
-                  to={`/organizations/${organizationId}/projects/details`}
-                  state={{ projectId: project.id }}
+                  to={`/organizations/${organizationId}/projects/${project.id}`}
                   className="group relative flex min-h-52 flex-col overflow-hidden rounded-xl border bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                 >
                   {/* Top */}

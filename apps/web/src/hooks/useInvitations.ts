@@ -12,7 +12,7 @@ import {
 } from '../services/invitation.service';
 
 import { toast } from '../lib/toast';
-import { useModal } from '../ui/ModalContext';
+import { ORGANIZATIONS_QUERY_KEY } from './useOrganizations';
 
 type InviteMemberVariables = {
   orgId: string;
@@ -66,8 +66,6 @@ export function useInvitations() {
 }
 
 export function useRevokeInvitation(organizationId: string) {
-  const { close } = useModal();
-
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (invitationId: string) => revokeInvitation(invitationId),
@@ -78,7 +76,6 @@ export function useRevokeInvitation(organizationId: string) {
       });
 
       toast.success('Invitation cancelled');
-      close();
     },
 
     onError: (err) => {
@@ -96,6 +93,9 @@ export function useAcceptInvitation() {
 
       queryClient.invalidateQueries({
         queryKey: ['invitations'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [ORGANIZATIONS_QUERY_KEY],
       });
     },
     onError: (err) => {

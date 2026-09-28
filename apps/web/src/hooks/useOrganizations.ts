@@ -9,12 +9,11 @@ import {
   leaveOrganization,
   removeOrganizationMember,
   updateOrganization,
-  type UpdateOrganizationData,
 } from '../services/organization.service';
 
 import { toast } from '../lib/toast';
 import { useNavigate } from 'react-router-dom';
-import { useModal } from '../ui/ModalContext';
+import type { CreateOrgFormValues } from '../features/organization/organization.schema';
 
 export const ORGANIZATIONS_QUERY_KEY = ['organizations'];
 
@@ -84,7 +83,7 @@ export function useUpdateOrganization() {
       data,
     }: {
       orgId: string;
-      data: UpdateOrganizationData;
+      data: CreateOrgFormValues;
     }) => updateOrganization(orgId, data),
 
     onSuccess: async (_data, { orgId }) => {
@@ -130,7 +129,6 @@ type RemoveOrganizationMemberVariables = {
 };
 
 export function useRemoveOrganizationMember() {
-  const { close } = useModal();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -145,7 +143,6 @@ export function useRemoveOrganizationMember() {
         queryKey: organizationMembersQueryKey(organizationId),
       });
 
-      close();
       toast.success('Member removed successfully');
     },
 
@@ -157,7 +154,7 @@ export function useRemoveOrganizationMember() {
 
 export function useLeaveOrganization() {
   const queryClient = useQueryClient();
-
+  const navigate = useNavigate();
   return useMutation({
     mutationFn: leaveOrganization,
 
@@ -166,6 +163,7 @@ export function useLeaveOrganization() {
         queryKey: ORGANIZATIONS_QUERY_KEY,
       });
 
+      navigate('/organizations');
       toast.success('You left the organization');
     },
 

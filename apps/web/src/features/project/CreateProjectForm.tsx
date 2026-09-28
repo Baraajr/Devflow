@@ -8,7 +8,6 @@ import { Textarea } from '../../ui/TextArea';
 import { useModal } from '../../ui/ModalContext';
 import { useCreateProject } from '../../hooks/useProjects';
 
-import type { CreateProjectInput } from '../../types/project';
 import { projectSchema, type ProjectFormValues } from './project.schema';
 
 interface CreateProjectFormProps {
@@ -35,7 +34,7 @@ function CreateProjectForm({ organizationId }: CreateProjectFormProps) {
   });
 
   const onSubmit = async (data: ProjectFormValues) => {
-    const payload: CreateProjectInput = {
+    const payload: ProjectFormValues = {
       name: data.name.trim(),
       key: data.key.trim().toUpperCase(),
       description: data.description?.trim() || undefined,

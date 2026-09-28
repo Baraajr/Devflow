@@ -13,13 +13,12 @@ import {
   updateProject,
   updateProjectMemberRole,
 } from '../services/project.service';
+import type { ProjectMember } from '../types/project';
 import type {
-  AddProjectMemberInput,
-  CreateProjectInput,
-  ProjectMember,
-  UpdateProjectInput,
-} from '../types/project';
-import { useModal } from '../ui/ModalContext';
+  ProjectFormValues,
+  AddMemberFormValues,
+  UpdateProjectFormValues,
+} from '../features/project/project.schema';
 
 // --- Query Key Factory ---
 export const projectKeys = {
@@ -61,7 +60,7 @@ export function useCreateProject(organizationId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateProjectInput) =>
+    mutationFn: (data: ProjectFormValues) =>
       createProject(organizationId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -79,7 +78,8 @@ export function useUpdateProject(organizationId: string, projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateProjectInput) => updateProject(projectId, data),
+    mutationFn: (data: UpdateProjectFormValues) =>
+      updateProject(projectId, data),
     onSuccess: (project) => {
       queryClient.setQueryData(projectKeys.detail(projectId), project);
       queryClient.invalidateQueries({
@@ -129,7 +129,7 @@ export function useAddProjectMember(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: AddProjectMemberInput) =>
+    mutationFn: (data: AddMemberFormValues) =>
       addProjectMember(projectId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -145,7 +145,6 @@ export function useAddProjectMember(projectId: string) {
 
 export function useUpdateProjectMemberRole(projectId: string) {
   const queryClient = useQueryClient();
-  const { close } = useModal();
 
   return useMutation({
     mutationFn: ({
@@ -156,7 +155,6 @@ export function useUpdateProjectMemberRole(projectId: string) {
       role: ProjectMember['role'];
     }) => updateProjectMemberRole(projectId, memberUserId, role),
     onSuccess: () => {
-      close();
       queryClient.invalidateQueries({
         queryKey: projectKeys.members(projectId),
       });
@@ -169,8 +167,6 @@ export function useUpdateProjectMemberRole(projectId: string) {
 }
 
 export function useRemoveProjectMember(projectId: string) {
-  const { close } = useModal();
-
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -181,7 +177,6 @@ export function useRemoveProjectMember(projectId: string) {
         queryKey: projectKeys.members(projectId),
       });
       toast.success('Member removed successfully');
-      close();
     },
     onError: (err) => {
       toast.error(err.message);

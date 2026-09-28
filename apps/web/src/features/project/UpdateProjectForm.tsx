@@ -8,7 +8,6 @@ import { Textarea } from '../../ui/TextArea';
 import { useModal } from '../../ui/ModalContext';
 import { useProject, useUpdateProject } from '../../hooks/useProjects';
 
-import type { UpdateProjectInput } from '../../types/project';
 import {
   updateProjectSchema,
   type UpdateProjectFormValues,
@@ -44,7 +43,7 @@ function UpdateProjectForm({
   });
 
   const onSubmit = async (data: UpdateProjectFormValues) => {
-    const payload: UpdateProjectInput = {
+    const payload: UpdateProjectFormValues = {
       ...(data.name && { name: data.name.trim() }),
       ...(data.key && { key: data.key.trim().toUpperCase() }),
       ...(data.description !== undefined && {

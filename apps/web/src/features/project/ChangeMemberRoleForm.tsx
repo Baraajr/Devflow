@@ -6,6 +6,7 @@ import Modal from '../../ui/Modal';
 
 import type { ProjectRole } from '../../types/project';
 import { useUpdateProjectMemberRole } from '../../hooks/useProjects';
+import { useModal } from '../../ui/ModalContext';
 
 interface ChangeMemberRoleFormProps {
   projectId: string;
@@ -44,6 +45,7 @@ function ChangeMemberRoleForm({
   userId,
   currentRole,
 }: ChangeMemberRoleFormProps) {
+  const { close } = useModal();
   const {
     register,
     handleSubmit,
@@ -61,11 +63,20 @@ function ChangeMemberRoleForm({
     });
   }, [currentRole, reset]);
 
-  const { mutate: changeRole, isPending } =
+  const { mutateAsync: changeRoleAsync, isPending } =
     useUpdateProjectMemberRole(projectId);
 
-  const onSubmit = (data: FormValues) => {
-    changeRole({ memberUserId: userId, role: data.role });
+  const onSubmit = async (data: FormValues) => {
+    try {
+      await changeRoleAsync({
+        memberUserId: userId,
+        role: data.role,
+      });
+
+      close();
+    } catch {
+      // Error toast is already handled by the mutation.
+    }
   };
 
   return (

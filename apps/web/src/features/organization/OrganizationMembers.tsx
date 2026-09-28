@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Search, UserPlus, LogOut, UserCog, Trash2 } from 'lucide-react';
+import { Search, UserPlus, LogOut } from 'lucide-react';
 
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -19,6 +19,9 @@ import InviteUserForm from '../invitation/InviteUserForm';
 import ChangeMemberRoleForm from './ChangeMemberRoleForm';
 
 import type { OrganizationRole } from '../../types/organization';
+import { useModal } from '../../ui/ModalContext';
+import MemberActions from '../../ui/MemberActions';
+import EmptyMembersState from '../../ui/EmptyMembersState';
 
 type SelectedMember = {
   userId: string;
@@ -27,6 +30,7 @@ type SelectedMember = {
 };
 
 function OrganizationMembers() {
+  const { close } = useModal();
   const { organizationId } = useParams<{
     organizationId: string;
   }>();
@@ -95,232 +99,183 @@ function OrganizationMembers() {
   }
 
   return (
-    <Modal>
-      <div className="mx-auto max-w-7xl p-6 lg:p-8">
-        {/* Header */}
-        <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">
-              {organization?.name}
-            </p>
+    <div className="mx-auto max-w-7xl p-6 lg:p-8">
+      {/* Header */}
+      <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">
+            {organization?.name}
+          </p>
 
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-              Members
-            </h1>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+            Members
+          </h1>
 
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Manage the people who have access to this organization.
-            </p>
-          </div>
-
-          {isOwner && (
-            <Modal.Open opens="invite-member">
-              <Button className="shrink-0">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Invite member
-              </Button>
-            </Modal.Open>
-          )}
-        </div>
-
-        {/* Search / count */}
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-
-            <input
-              type="search"
-              placeholder="Search members..."
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              className="h-10 w-full rounded-md border bg-surface pl-9 pr-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
-          </div>
-
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">
-              {filteredMembers.length}
-            </span>{' '}
-            {filteredMembers.length === 1 ? 'member' : 'members'}
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Manage the people who have access to this organization.
           </p>
         </div>
 
-        {/* Members list */}
-        <div className="overflow-hidden rounded-lg border bg-surface">
-          {filteredMembers.length === 0 ? (
-            <EmptyMembersState search={search} />
-          ) : (
-            <div className="divide-y divide-border">
-              {filteredMembers.map((member) => {
-                const fullName =
-                  `${member.user.firstName} ${member.user.lastName}`.trim();
+        {isOwner && (
+          <Modal.Open opens="invite-member">
+            <Button className="shrink-0">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite member
+            </Button>
+          </Modal.Open>
+        )}
+      </div>
 
-                const canManage =
-                  isOwner ||
-                  (isManager &&
-                    member.role !== 'owner' &&
-                    member.role !== 'manager');
+      {/* Search / count */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
-                const isCurrentUser = member.userId === user?.id;
-
-                const selectMember = () => {
-                  setSelectedMember({
-                    userId: member.userId,
-                    name: fullName,
-                    role: member.role,
-                  });
-                };
-
-                return (
-                  <MemberRow
-                    key={member.userId}
-                    name={fullName}
-                    email={member.user.email}
-                    role={member.role}
-                    profileImage={member.user.profileImage}
-                    isCurrentUser={isCurrentUser}
-                    actions={
-                      canManage && !isCurrentUser ? (
-                        <MemberActions
-                          onChangeRole={selectMember}
-                          onRemove={selectMember}
-                        />
-                      ) : null
-                    }
-                  />
-                );
-              })}
-            </div>
-          )}
+          <input
+            type="search"
+            placeholder="Search members..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="h-10 w-full rounded-md border bg-surface pl-9 pr-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20"
+          />
         </div>
 
-        {/* Leave organization */}
-        {!isOwner && (
-          <div className="mt-6 flex flex-col gap-4 rounded-lg border border-danger/20 bg-danger/5 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-medium">Leave organization</p>
+        <p className="text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">
+            {filteredMembers.length}
+          </span>{' '}
+          {filteredMembers.length === 1 ? 'member' : 'members'}
+        </p>
+      </div>
 
-              <p className="mt-1 text-sm text-muted-foreground">
-                You will lose access to this organization.
-              </p>
-            </div>
+      {/* Members list */}
+      <div className="overflow-hidden rounded-lg border bg-surface">
+        {filteredMembers.length === 0 ? (
+          <EmptyMembersState search={search} />
+        ) : (
+          <div className="divide-y divide-border">
+            {filteredMembers.map((member) => {
+              const fullName =
+                `${member.user.firstName} ${member.user.lastName}`.trim();
 
-            <Modal.Open opens="leave-organization">
-              <Button variant="danger" className="w-full sm:w-auto">
-                <LogOut className="mr-2 h-4 w-4" />
-                Leave
-              </Button>
-            </Modal.Open>
+              const canManage =
+                isOwner ||
+                (isManager &&
+                  member.role !== 'owner' &&
+                  member.role !== 'manager');
+
+              const isCurrentUser = member.userId === user?.id;
+
+              const selectMember = () => {
+                setSelectedMember({
+                  userId: member.userId,
+                  name: fullName,
+                  role: member.role,
+                });
+              };
+
+              return (
+                <MemberRow
+                  key={member.userId}
+                  name={fullName}
+                  email={member.user.email}
+                  role={member.role}
+                  profileImage={member.user.profileImage}
+                  isCurrentUser={isCurrentUser}
+                  actions={
+                    canManage && !isCurrentUser ? (
+                      <MemberActions
+                        changeRoleModal="change-member-role"
+                        removeModal="remove-member"
+                        onChangeRole={selectMember}
+                        onRemove={selectMember}
+                      />
+                    ) : null
+                  }
+                />
+              );
+            })}
           </div>
         )}
+      </div>
 
-        {/* Invite */}
-        <Modal.Window name="invite-member">
-          {organizationId && <InviteUserForm orgId={organizationId} />}
-        </Modal.Window>
+      {/* Leave organization */}
+      {!isOwner && (
+        <div className="mt-6 flex flex-col gap-4 rounded-lg border border-danger/20 bg-danger/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-medium">Leave organization</p>
 
-        {/* Change role */}
-        <Modal.Window name="change-member-role">
-          {selectedMember && organizationId && (
-            <ChangeMemberRoleForm
-              organizationId={organizationId}
-              userId={selectedMember.userId}
-              currentRole={selectedMember.role}
-            />
-          )}
-        </Modal.Window>
+            <p className="mt-1 text-sm text-muted-foreground">
+              You will lose access to this organization.
+            </p>
+          </div>
 
-        {/* Remove */}
-        <Modal.Window name="remove-member">
-          {selectedMember && (
-            <ConfirmDialog
-              title="Remove member?"
-              description={`Are you sure you want to remove ${selectedMember.name} from this organization?`}
-              confirmLabel="Remove member"
-              cancelLabel="Keep member"
-              onConfirm={() => {
-                if (!organizationId) return;
+          <Modal.Open opens="leave-organization">
+            <Button variant="danger" className="w-full sm:w-auto">
+              <LogOut className="mr-2 h-4 w-4" />
+              Leave
+            </Button>
+          </Modal.Open>
+        </div>
+      )}
 
-                removeMember({
+      {/* Invite */}
+      <Modal.Window name="invite-member">
+        {organizationId && <InviteUserForm orgId={organizationId} />}
+      </Modal.Window>
+
+      {/* Change role */}
+      <Modal.Window name="change-member-role">
+        {selectedMember && organizationId && (
+          <ChangeMemberRoleForm
+            organizationId={organizationId}
+            userId={selectedMember.userId}
+            currentRole={selectedMember.role}
+          />
+        )}
+      </Modal.Window>
+
+      {/* Remove */}
+      <Modal.Window name="remove-member">
+        {selectedMember && (
+          <ConfirmDialog
+            title="Remove member?"
+            description={`Are you sure you want to remove ${selectedMember.name} from this organization?`}
+            confirmLabel="Remove member"
+            cancelLabel="Keep member"
+            onConfirm={() => {
+              if (!organizationId) return;
+
+              removeMember(
+                {
                   organizationId,
                   userId: selectedMember.userId,
-                });
-              }}
-              disabled={isRemoving}
-            />
-          )}
-        </Modal.Window>
+                },
+                {
+                  onSuccess: () => {
+                    close();
+                  },
+                },
+              );
+            }}
+            disabled={isRemoving}
+          />
+        )}
+      </Modal.Window>
 
-        {/* Leave */}
-        <Modal.Window name="leave-organization">
-          {organization?.name && organizationId && (
-            <ConfirmDialog
-              title="Leave organization?"
-              description={`Are you sure you want to leave ${organization.name}? You will lose access to this organization's projects, issues, and members.`}
-              confirmLabel="Leave organization"
-              cancelLabel="Stay"
-              onConfirm={() => leaveOrg(organizationId)}
-              disabled={isLeaving}
-            />
-          )}
-        </Modal.Window>
-      </div>
-    </Modal>
-  );
-}
-
-function MemberActions({
-  onChangeRole,
-  onRemove,
-}: {
-  onChangeRole: () => void;
-  onRemove: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-1">
-      <Modal.Open opens="change-member-role">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onChangeRole}
-          className="text-muted-foreground hover:bg-primary/10 hover:text-primary"
-        >
-          <UserCog className="h-4 w-4" />
-        </Button>
-      </Modal.Open>
-
-      <Modal.Open opens="remove-member">
-        <Button
-          variant="ghost"
-          type="button"
-          size="sm"
-          onClick={onRemove}
-          className="text-muted-foreground hover:bg-danger/10 hover:text-danger"
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </Modal.Open>
-    </div>
-  );
-}
-
-function EmptyMembersState({ search }: { search: string }) {
-  return (
-    <div className="flex min-h-64 flex-col items-center justify-center px-6 py-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-        <Search className="h-5 w-5" />
-      </div>
-
-      <h3 className="mt-4 font-medium">
-        {search ? 'No members found' : 'No members'}
-      </h3>
-
-      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-        {search
-          ? 'Try adjusting your search.'
-          : 'There are no members in this organization.'}
-      </p>
+      {/* Leave */}
+      <Modal.Window name="leave-organization">
+        {organization?.name && organizationId && (
+          <ConfirmDialog
+            title="Leave organization?"
+            description={`Are you sure you want to leave ${organization.name}? You will lose access to this organization's projects, issues, and members.`}
+            confirmLabel="Leave organization"
+            cancelLabel="Stay"
+            onConfirm={() => leaveOrg(organizationId)}
+            disabled={isLeaving}
+          />
+        )}
+      </Modal.Window>
     </div>
   );
 }

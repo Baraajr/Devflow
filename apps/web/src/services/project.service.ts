@@ -1,6 +1,6 @@
 import { apiRequest } from './api';
 
-import type { Project, ProjectMember, ProjectMembers } from '../types/project';
+import type { Project, ProjectMember } from '../types/project';
 import type {
   AddMemberFormValues,
   ProjectFormValues,
@@ -50,10 +50,8 @@ export function deleteProject(projectId: string): Promise<void> {
   });
 }
 
-export function getProjectMembers(
-  projectId: string,
-): Promise<ProjectMembers[]> {
-  return apiRequest<ProjectMembers[]>(`/projects/${projectId}/members`);
+export function getProjectMembers(projectId: string): Promise<ProjectMember[]> {
+  return apiRequest<ProjectMember[]>(`/projects/${projectId}/members`);
 }
 
 export function addProjectMember(

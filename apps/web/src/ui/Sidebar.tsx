@@ -1,83 +1,98 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
 import {
   FolderKanban,
   LayoutDashboard,
   Settings,
-  CircleDot,
-  ListTodo,
   Users,
   Building2,
   Mail,
   ArrowLeft,
+  CircleDot,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 function Sidebar() {
   const { user } = useAuth();
-  const location = useLocation();
+  const { organizationId, projectId } = useParams();
 
-  const organizationId = location.pathname.match(
-    /^\/organizations\/([^/]+)/,
-  )?.[1];
-
-  const navigation = organizationId
+  const navigation = projectId
     ? [
         {
           label: 'Overview',
-          href: `/organizations/${organizationId}`,
+          href: `/organizations/${organizationId}/projects/${projectId}`,
           icon: LayoutDashboard,
           end: true,
         },
         {
-          label: 'Projects',
-          href: `/organizations/${organizationId}/projects`,
-          icon: FolderKanban,
-        },
-        {
           label: 'Issues',
-          href: `/organizations/${organizationId}/issues`,
+          href: `/organizations/${organizationId}/projects/${projectId}/issues`,
           icon: CircleDot,
         },
         {
-          label: 'Tasks',
-          href: `/organizations/${organizationId}/tasks`,
-          icon: ListTodo,
-        },
-        {
           label: 'Members',
-          href: `/organizations/${organizationId}/members`,
+          href: `/organizations/${organizationId}/projects/${projectId}/members`,
           icon: Users,
         },
         {
-          label: 'Invitations',
-          href: `/organizations/${organizationId}/invitations`,
-          icon: Mail,
-        },
-        {
           label: 'Settings',
-          href: `/organizations/${organizationId}/settings`,
+          href: `/organizations/${organizationId}/projects/${projectId}/settings`,
           icon: Settings,
         },
       ]
-    : [
-        {
-          label: 'Dashboard',
-          href: '/dashboard',
-          icon: LayoutDashboard,
-        },
-        {
-          label: 'Organizations',
-          href: '/organizations',
-          icon: Building2,
-        },
-      ];
+    : organizationId
+      ? [
+          {
+            label: 'Overview',
+            href: `/organizations/${organizationId}`,
+            icon: LayoutDashboard,
+            end: true,
+          },
+          {
+            label: 'Projects',
+            href: `/organizations/${organizationId}/projects`,
+            icon: FolderKanban,
+          },
+          {
+            label: 'Members',
+            href: `/organizations/${organizationId}/members`,
+            icon: Users,
+          },
+          {
+            label: 'Invitations',
+            href: `/organizations/${organizationId}/invitations`,
+            icon: Mail,
+          },
+          {
+            label: 'Settings',
+            href: `/organizations/${organizationId}/settings`,
+            icon: Settings,
+          },
+        ]
+      : [
+          {
+            label: 'Dashboard',
+            href: '/dashboard',
+            icon: LayoutDashboard,
+          },
+          {
+            label: 'Organizations',
+            href: '/organizations',
+            icon: Building2,
+          },
+        ];
+
+  const backHref = projectId
+    ? `/organizations/${organizationId}/projects`
+    : '/organizations';
+
+  const backLabel = projectId ? 'Projects' : 'Organizations';
 
   return (
     <aside className="hidden w-64 shrink-0 border-r bg-surface md:block">
-      {/* Workspace header */}
       <div className="flex h-16 items-center border-b px-5">
         <div className="min-w-0">
           <p className="text-xs font-medium text-muted-foreground">Workspace</p>
+
           <h1 className="truncate text-sm font-semibold">
             {user?.firstName}'s Workspace
           </h1>
@@ -85,18 +100,16 @@ function Sidebar() {
       </div>
 
       <div className="sticky top-0 flex h-[calc(100vh-4rem)] flex-col px-3 py-4">
-        {/* Back navigation */}
-        {organizationId && (
+        {(organizationId || projectId) && (
           <NavLink
-            to="/organizations"
+            to={backHref}
             className="mb-5 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
           >
             <ArrowLeft className="size-4" />
-            <span>Organizations</span>
+            <span>{backLabel}</span>
           </NavLink>
         )}
 
-        {/* Navigation */}
         <nav className="space-y-1">
           {navigation.map(({ label, href, icon: Icon, end }) => (
             <NavLink
@@ -129,7 +142,6 @@ function Sidebar() {
           ))}
         </nav>
 
-        {/* Bottom area */}
         <div className="mt-auto border-t pt-4">
           <p className="px-3 text-xs text-muted-foreground">DevFlow</p>
         </div>

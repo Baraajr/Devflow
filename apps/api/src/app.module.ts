@@ -11,6 +11,7 @@ import { OrganizationModule } from './organization/organization.module';
 import { InvitationModule } from './invitation/invitation.module';
 import { MailModule } from './mail/mail.module';
 import { ProjectModule } from './projects/project.module';
+import { IssueModule } from './issue/issue.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { ProjectModule } from './projects/project.module';
     InvitationModule,
     MailModule,
     ProjectModule,
+    IssueModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

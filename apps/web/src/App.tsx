@@ -16,6 +16,9 @@ import OrganizationInvitaionsPage from './pages/OrganizationInvitationsPage';
 import ProjectsPage from './pages/ProjectsPage';
 import ProjectPage from './pages/ProjectPage';
 import NotFoundPage from './ui/NotFoundPage';
+import IssuesPage from './pages/IssuesPage';
+import IssuePage from './pages/IssuePage';
+import ProjectMembersPage from './pages/ProjectMembersPage';
 
 function App() {
   return (
@@ -41,7 +44,22 @@ function App() {
               <Route index element={<OrganizationPage />} />
               <Route path="members" element={<OrganizationMembersPage />} />
               <Route path="projects" element={<ProjectsPage />} />
-              <Route path="projects/details" element={<ProjectPage />} />
+
+              <Route path="projects/:projectId" element={<ProjectPage />} />
+
+              <Route
+                path="projects/:projectId/issues"
+                element={<IssuesPage />}
+              />
+              <Route
+                path="projects/:projectId/members"
+                element={<ProjectMembersPage />}
+              />
+              <Route
+                path="projects/:projectId/issues/:issueId"
+                element={<IssuePage />}
+              />
+
               <Route
                 path="invitations"
                 element={<OrganizationInvitaionsPage />}

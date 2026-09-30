@@ -1,10 +1,11 @@
 import Issue from '../features/issue/issue';
+import Modal from '../ui/Modal';
 
 function IssuePage() {
   return (
-    <div>
+    <Modal>
       <Issue />
-    </div>
+    </Modal>
   );
 }
 export default IssuePage;

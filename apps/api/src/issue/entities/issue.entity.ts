@@ -3,6 +3,8 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -13,6 +15,7 @@ import { User } from '../../users/entities/user.entity';
 import { IssueStatus } from '../enums/Issue-status.enum';
 import { IssueType } from '../enums/Issue-type.enum';
 import { IssuePriority } from '../enums/Issue-priority.enum';
+import { Label } from '../../label/entities/label.entity';
 
 @Entity('issues')
 export class Issue {
@@ -119,4 +122,18 @@ export class Issue {
     type: 'timestamptz',
   })
   updatedAt: Date;
+
+  @ManyToMany(() => Label, (label) => label.issues)
+  @JoinTable({
+    name: 'issue_labels',
+    joinColumn: {
+      name: 'issue_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'label_id',
+      referencedColumnName: 'id',
+    },
+  })
+  labels: Label[];
 }

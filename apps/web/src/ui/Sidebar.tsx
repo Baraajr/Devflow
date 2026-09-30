@@ -8,6 +8,7 @@ import {
   Mail,
   ArrowLeft,
   CircleDot,
+  Tags,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -34,9 +35,9 @@ function Sidebar() {
           icon: Users,
         },
         {
-          label: 'Settings',
-          href: `/organizations/${organizationId}/projects/${projectId}/settings`,
-          icon: Settings,
+          label: 'Labels',
+          href: `/organizations/${organizationId}/projects/${projectId}/labels`,
+          icon: Tags,
         },
       ]
     : organizationId

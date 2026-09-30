@@ -1,3 +1,4 @@
+import type { Label } from './label';
 import type { User } from './user';
 
 export type IssuePriority = 'low' | 'medium' | 'high' | 'urgent';
@@ -26,6 +27,8 @@ export interface Issue {
   priority: IssuePriority;
 
   issueNumber: number;
+
+  labels: Label[];
 
   createdAt: string;
   updatedAt: string;

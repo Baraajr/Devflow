@@ -128,8 +128,12 @@ function CreateIssueForm({ projectId }: CreateIssueFormProps) {
       )}
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={createIssue.isPending}>
-          {createIssue.isPending ? 'Creating...' : 'Create issue'}
+        <Button
+          type="submit"
+          disabled={createIssue.isPending}
+          loading={createIssue.isPending}
+        >
+          Create issue
         </Button>
       </div>
     </form>

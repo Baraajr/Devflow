@@ -13,6 +13,7 @@ import { MailModule } from './mail/mail.module';
 import { ProjectModule } from './projects/project.module';
 import { IssueModule } from './issue/issue.module';
 import { LabelsModule } from './label/label.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { LabelsModule } from './label/label.module';
     ProjectModule,
     IssueModule,
     LabelsModule,
+    CommentModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

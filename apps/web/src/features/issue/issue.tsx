@@ -28,6 +28,8 @@ import {
   useRemoveIssueLabel,
 } from '../../hooks/useIssueLabels';
 import { useProjectLabels } from '../../hooks/useLabels';
+import Comments from '../comment/comments';
+import { useAuth } from '../../hooks/useAuth';
 
 /* ---------- Style helpers ---------- */
 
@@ -175,6 +177,7 @@ function Card({
 /* ---------- Page ---------- */
 
 function Issue() {
+  const { user } = useAuth();
   const { organizationId, projectId, issueId } = useParams();
 
   const navigate = useNavigate();
@@ -379,7 +382,6 @@ function Issue() {
               </p>
             )}
           </Card>
-
           <Card
             title="Labels"
             icon={<Tag className="h-4 w-4 text-muted-foreground" />}
@@ -439,9 +441,13 @@ function Issue() {
                 </span>
               )}
             </div>
-          </Card>
+          </Card>{' '}
+          <Comments
+            projectId={projectId ?? ''}
+            issueId={issue.id}
+            currentUserId={user?.id ?? ''}
+          />
         </div>
-
         {/* Right rail */}
         <aside className="space-y-6 lg:sticky lg:top-6">
           <Card title="People">
@@ -494,6 +500,7 @@ function Issue() {
             </ol>
           </Card>
         </aside>
+        {/* Comments */}
       </div>
 
       {/* Modals */}

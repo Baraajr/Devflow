@@ -12,6 +12,7 @@ import { InvitationModule } from './invitation/invitation.module';
 import { MailModule } from './mail/mail.module';
 import { ProjectModule } from './projects/project.module';
 import { IssueModule } from './issue/issue.module';
+import { LabelsModule } from './label/label.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { IssueModule } from './issue/issue.module';
     MailModule,
     ProjectModule,
     IssueModule,
+    LabelsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

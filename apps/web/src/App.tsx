@@ -19,6 +19,7 @@ import NotFoundPage from './ui/NotFoundPage';
 import IssuesPage from './pages/IssuesPage';
 import IssuePage from './pages/IssuePage';
 import ProjectMembersPage from './pages/ProjectMembersPage';
+import LabelsPage from './pages/LabelsPage';
 
 function App() {
   return (
@@ -54,6 +55,10 @@ function App() {
               <Route
                 path="projects/:projectId/members"
                 element={<ProjectMembersPage />}
+              />
+              <Route
+                path="projects/:projectId/labels"
+                element={<LabelsPage />}
               />
               <Route
                 path="projects/:projectId/issues/:issueId"

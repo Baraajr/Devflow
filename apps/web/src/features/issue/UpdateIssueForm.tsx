@@ -133,8 +133,12 @@ function UpdateIssueForm({
       )}
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={updateIssue.isPending}>
-          {updateIssue.isPending ? 'Saving...' : 'Save changes'}
+        <Button
+          type="submit"
+          disabled={updateIssue.isPending}
+          loading={updateIssue.isPending}
+        >
+          Save changes
         </Button>
       </div>
     </form>

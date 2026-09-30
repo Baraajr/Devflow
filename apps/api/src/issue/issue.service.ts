@@ -68,6 +68,7 @@ export class IssueService {
       relations: {
         reporter: true,
         assignee: true,
+        labels: true,
       },
       order: {
         issueNumber: 'DESC',
@@ -91,6 +92,7 @@ export class IssueService {
         reporter: true,
         assignee: true,
         parentIssue: true,
+        labels: true,
       },
     });
 

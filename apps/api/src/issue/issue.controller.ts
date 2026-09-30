@@ -14,18 +14,24 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 
 import { IssueService } from './issue.service';
+import { IssueLabelsService } from './issue-labels.service';
+
 import { CreateIssueDto } from './dtos/create-issue.dto';
 import { UpdateIssueDto } from './dtos/update-issue.dto';
+import { AssignIssueDto } from './dtos/assign-issue.dto';
+
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
-import { AssignIssueDto } from './dtos/assign-issue.dto';
 
 @ApiTags('Issues')
 @Controller('projects/:projectId/issues')
 @UseGuards(JwtAuthGuard)
 export class IssueController {
-  constructor(private readonly issueService: IssueService) {}
+  constructor(
+    private readonly issueService: IssueService,
+    private readonly issueLabelsService: IssueLabelsService,
+  ) {}
 
   @Post()
   create(
@@ -76,6 +82,25 @@ export class IssueController {
       user.id,
       dto.assigneeId,
     );
+  }
+
+  @Post(':issueId/labels/:labelId')
+  addLabel(
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('issueId', ParseUUIDPipe) issueId: string,
+    @Param('labelId', ParseUUIDPipe) labelId: string,
+  ) {
+    return this.issueLabelsService.addLabel(projectId, issueId, labelId);
+  }
+
+  @Delete(':issueId/labels/:labelId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeLabel(
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Param('issueId', ParseUUIDPipe) issueId: string,
+    @Param('labelId', ParseUUIDPipe) labelId: string,
+  ): Promise<void> {
+    return this.issueLabelsService.removeLabel(projectId, issueId, labelId);
   }
 
   @Delete(':issueId')

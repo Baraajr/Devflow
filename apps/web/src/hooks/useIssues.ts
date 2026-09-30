@@ -25,7 +25,7 @@ export function useProjectIssues(projectId: string) {
 
 export function useIssue(projectId: string, issueId: string) {
   return useQuery({
-    queryKey: ['issues', projectId, issueId],
+    queryKey: ['issue', projectId, issueId],
     queryFn: () => getIssue(projectId, issueId),
     enabled: !!projectId && !!issueId,
   });
@@ -69,7 +69,7 @@ export function useUpdateIssue(projectId: string) {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ['issues', projectId, variables.issueId],
+        queryKey: ['issue', projectId, variable.issueId],
       });
 
       toast.success('Issue updated successfully');
@@ -119,7 +119,7 @@ export function useAssignIssue(projectId: string) {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ['issues', projectId, variables.issueId],
+        queryKey: ['issue', projectId, variables.issueId],
       });
 
       toast.success('Issue assigned successfully');

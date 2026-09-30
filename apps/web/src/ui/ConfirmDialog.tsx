@@ -23,22 +23,22 @@ function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
-        <h2 className="text-lg font-semibold">
+      <div className="space-y-3">
+        <h2 className="text-xl font-semibold text-primary">
           {title ?? `Delete ${resourceName}?`}
         </h2>
 
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="text-sm leading-6 text-muted-foreground">{description}</p>
       </div>
 
-      <div className="flex justify-end gap-3">
+      <div className="flex items-center justify-end gap-3 border-t pt-4">
         <Modal.Close>
           <Button variant="ghost" disabled={disabled}>
             {cancelLabel}
           </Button>
         </Modal.Close>
 
-        <Button variant="danger" onClick={onConfirm} loading={disabled}>
+        <Button variant="danger" onClick={onConfirm} disabled={disabled}>
           {disabled ? <SpinnerMini /> : confirmLabel}
         </Button>
       </div>

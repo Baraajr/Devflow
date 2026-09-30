@@ -3,6 +3,7 @@ import type {
   UpdateIssueFormData,
 } from '../features/issue/issue.schema';
 import type { Issue } from '../types/issue';
+import type { Label } from '../types/label';
 import { apiRequest } from './api';
 
 export function getProjectIssues(projectId: string) {
@@ -52,4 +53,30 @@ export function assignIssue(
       assigneeId,
     },
   });
+}
+
+export function addIssueLabel(
+  projectId: string,
+  issueId: string,
+  labelId: string,
+) {
+  return apiRequest<Label>(
+    `projects/${projectId}/issues/${issueId}/labels/${labelId}`,
+    {
+      method: 'POST',
+    },
+  );
+}
+
+export function removeIssueLabel(
+  projectId: string,
+  issueId: string,
+  labelId: string,
+) {
+  return apiRequest<void>(
+    `projects/${projectId}/issues/${issueId}/labels/${labelId}`,
+    {
+      method: 'DELETE',
+    },
+  );
 }

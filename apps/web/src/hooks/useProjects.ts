@@ -46,11 +46,27 @@ export function useProjects(organizationId?: string) {
   });
 }
 
+import axios from 'axios';
+
 export function useProject(projectId?: string) {
   return useQuery({
     queryKey: projectId ? projectKeys.detail(projectId) : projectKeys.all,
     queryFn: () => getProject(projectId!),
     enabled: Boolean(projectId),
+
+    staleTime: 30_000,
+
+    retry: (failureCount, error) => {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+
+        if (status && status >= 400 && status < 500) {
+          return false;
+        }
+      }
+
+      return failureCount < 1;
+    },
   });
 }
 

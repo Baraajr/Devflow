@@ -1,7 +1,12 @@
-import Organization from '../features/organization/Organization';
+import OrganizationContent from '../features/organization/Organization';
+import Modal from '../ui/Modal';
 
 function OrganizationPage() {
-  return <Organization />;
+  return (
+    <Modal>
+      <OrganizationContent />
+    </Modal>
+  );
 }
 
 export default OrganizationPage;

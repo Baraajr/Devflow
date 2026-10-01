@@ -9,28 +9,48 @@ import {
   useOrganizationInvitations,
   useRevokeInvitation,
 } from '../../hooks/useInvitations';
+import { useMyMembership } from '../../hooks/useOrganizations';
 
 function OrganizationInvitations() {
   const { organizationId } = useParams<{ organizationId: string }>();
+
+  const { data: currentUserMember, isPending: isLoadingMembership } =
+    useMyMembership(organizationId);
+
+  const currentUserRole = currentUserMember?.role;
+
+  const canViewInvitations =
+    currentUserRole === 'owner' || currentUserRole === 'manager';
 
   const {
     data: invitations = [],
     isLoading,
     isError,
-  } = useOrganizationInvitations(organizationId);
+    error,
+  } = useOrganizationInvitations(canViewInvitations ? organizationId : '');
 
   const revokeMutation = useRevokeInvitation(organizationId as string);
 
-  if (isLoading) {
+  if (isLoading && isLoadingMembership) {
     return <InvitationSkeleton />;
+  }
+
+  if (!canViewInvitations) {
+    return (
+      <div className="mx-auto max-w-7xl p-6 lg:p-8">
+        <div className="rounded-lg border border-danger/20 bg-danger/5 p-6">
+          <p className="text-sm font-medium text-danger">
+            You do not have permission to view organization invitations.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (isError) {
     return (
       <div className="rounded-lg border border-danger/20 bg-danger/5 p-6">
-        <p className="text-sm font-medium text-danger">
-          Failed to load invitations.
-        </p>
+        <p className="text-sm font-medium text-danger">{error.message} </p>
       </div>
     );
   }

@@ -357,4 +357,25 @@ export class OrganizationService {
 
     await this.organizationMemberRepository.remove(member);
   }
+
+  async getMyMembership(
+    userId: string,
+    organizationId: string,
+  ): Promise<OrganizationMember> {
+    const member = await this.organizationMemberRepository.findOne({
+      where: {
+        organizationId,
+        userId,
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (!member) {
+      throw new ForbiddenException('You are not a member of this organization');
+    }
+
+    return member;
+  }
 }

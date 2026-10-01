@@ -9,10 +9,15 @@ import {
   UserPlus,
   X,
 } from 'lucide-react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import {
+  Link,
+  useNavigate,
+  useOutletContext,
+  useParams,
+} from 'react-router-dom';
 
 import { useIssue, useDeleteIssue } from '../../hooks/useIssues';
-import { useProject, useProjectMembers } from '../../hooks/useProjects';
+import { useProjectMembers } from '../../hooks/useProjects';
 
 import { Button } from '../../ui/Button';
 import ConfirmDialog from '../../ui/ConfirmDialog';
@@ -28,8 +33,9 @@ import {
   useRemoveIssueLabel,
 } from '../../hooks/useIssueLabels';
 import { useProjectLabels } from '../../hooks/useLabels';
-import Comments from '../comment/comments';
+import Comments from '../comment/Comments';
 import { useAuth } from '../../hooks/useAuth';
+import type { Project } from '../../types/project';
 
 /* ---------- Style helpers ---------- */
 
@@ -188,8 +194,7 @@ function Issue() {
     isError: isMembersError,
   } = useProjectMembers(projectId);
 
-  const { data: project, isLoading: isProjectLoading } = useProject(projectId);
-
+  const project = useOutletContext<Project>();
   const {
     data: issue,
     isLoading: isIssueLoading,
@@ -243,7 +248,7 @@ function Issue() {
     }
   };
 
-  if (isProjectLoading || isIssueLoading) {
+  if (isIssueLoading) {
     return (
       <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
         <div className="h-8 w-64 animate-pulse rounded-lg bg-surface" />

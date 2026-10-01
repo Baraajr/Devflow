@@ -27,7 +27,18 @@ export async function getOrganization(orgId: string): Promise<Organization> {
 export async function getOrganizationMembers(
   orgId: string,
 ): Promise<OrganizationMember[]> {
-  return apiRequest<OrganizationMember[]>(`/organization/${orgId}/members`);
+  const res = apiRequest<OrganizationMember[]>(
+    `/organization/${orgId}/members`,
+  );
+
+  console.log(res);
+  return res;
+}
+
+export async function getMyMembership(
+  orgId: string,
+): Promise<OrganizationMember> {
+  return apiRequest<OrganizationMember>(`/organization/${orgId}/members/me`);
 }
 
 export async function leaveOrganization(orgId: string): Promise<void> {

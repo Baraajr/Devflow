@@ -1,8 +1,10 @@
+import axios from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   createOrg,
   deleteOrganization,
+  getMyMembership,
   getMyOrganizations,
   getOrganization,
   getOrganizationMembers,
@@ -28,6 +30,12 @@ export const organizationMembersQueryKey = (organizationId: string) => [
   'members',
 ];
 
+export const organizationMembershipQueryKey = (organizationId: string) => [
+  'organization',
+  organizationId,
+  'membership',
+];
+
 export function useOrganizations() {
   return useQuery({
     queryKey: ORGANIZATIONS_QUERY_KEY,
@@ -42,6 +50,19 @@ export function useOrganization(organizationId?: string) {
     queryKey: organizationQueryKey(organizationId!),
     queryFn: () => getOrganization(organizationId!),
     enabled: !!organizationId,
+    staleTime: 30_000,
+
+    retry: (failureCount, error) => {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+
+        if (status && status >= 400 && status < 500) {
+          return false;
+        }
+      }
+
+      return failureCount < 1;
+    },
   });
 }
 
@@ -49,6 +70,15 @@ export function useOrganizationMembers(organizationId?: string) {
   return useQuery({
     queryKey: organizationMembersQueryKey(organizationId!),
     queryFn: () => getOrganizationMembers(organizationId!),
+    enabled: !!organizationId,
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function useMyMembership(organizationId?: string) {
+  return useQuery({
+    queryKey: organizationMembershipQueryKey(organizationId!),
+    queryFn: () => getMyMembership(organizationId!),
     enabled: !!organizationId,
     staleTime: 5 * 60_000,
   });

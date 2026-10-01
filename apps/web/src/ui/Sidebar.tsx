@@ -2,19 +2,22 @@ import { NavLink, useParams } from 'react-router-dom';
 import {
   FolderKanban,
   LayoutDashboard,
-  Settings,
   Users,
   Building2,
   Mail,
   ArrowLeft,
   CircleDot,
   Tags,
+  CalendarRange,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useMyMembership } from '../hooks/useOrganizations';
 
 function Sidebar() {
   const { user } = useAuth();
   const { organizationId, projectId } = useParams();
+  const { data: orgMember } = useMyMembership(organizationId);
+  const canView = orgMember?.role === 'owner' || orgMember?.role === 'manager';
 
   const navigation = projectId
     ? [
@@ -23,6 +26,11 @@ function Sidebar() {
           href: `/organizations/${organizationId}/projects/${projectId}`,
           icon: LayoutDashboard,
           end: true,
+        },
+        {
+          label: 'Sprints',
+          href: `/organizations/${organizationId}/projects/${projectId}/sprints`,
+          icon: CalendarRange,
         },
         {
           label: 'Issues',
@@ -53,21 +61,21 @@ function Sidebar() {
             href: `/organizations/${organizationId}/projects`,
             icon: FolderKanban,
           },
-          {
-            label: 'Members',
-            href: `/organizations/${organizationId}/members`,
-            icon: Users,
-          },
-          {
-            label: 'Invitations',
-            href: `/organizations/${organizationId}/invitations`,
-            icon: Mail,
-          },
-          {
-            label: 'Settings',
-            href: `/organizations/${organizationId}/settings`,
-            icon: Settings,
-          },
+
+          ...(canView
+            ? [
+                {
+                  label: 'Invitations',
+                  href: `/organizations/${organizationId}/invitations`,
+                  icon: Mail,
+                },
+                {
+                  label: 'Members',
+                  href: `/organizations/${organizationId}/members`,
+                  icon: Users,
+                },
+              ]
+            : []),
         ]
       : [
           {

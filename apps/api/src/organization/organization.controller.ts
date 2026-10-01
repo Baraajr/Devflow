@@ -94,6 +94,14 @@ export class OrganizationController {
     return this.organizationService.deleteOrganization(user.id, organizationId);
   }
 
+  @Get(':organizationId/members/me')
+  async getMyMembership(
+    @Param('organizationId', ParseUUIDPipe) organizationId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.organizationService.getMyMembership(user.id, organizationId);
+  }
+
   @Delete(':organizationId/members/me')
   @HttpCode(HttpStatus.NO_CONTENT)
   async leaveOrganization(

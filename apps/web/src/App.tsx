@@ -20,6 +20,7 @@ import IssuesPage from './pages/IssuesPage';
 import IssuePage from './pages/IssuePage';
 import ProjectMembersPage from './pages/ProjectMembersPage';
 import LabelsPage from './pages/LabelsPage';
+import ProjectLayout from './ui/ProjectLayout';
 
 function App() {
   return (
@@ -43,27 +44,18 @@ function App() {
               element={<OrganizationLayout />}
             >
               <Route index element={<OrganizationPage />} />
+
               <Route path="members" element={<OrganizationMembersPage />} />
+
               <Route path="projects" element={<ProjectsPage />} />
 
-              <Route path="projects/:projectId" element={<ProjectPage />} />
-
-              <Route
-                path="projects/:projectId/issues"
-                element={<IssuesPage />}
-              />
-              <Route
-                path="projects/:projectId/members"
-                element={<ProjectMembersPage />}
-              />
-              <Route
-                path="projects/:projectId/labels"
-                element={<LabelsPage />}
-              />
-              <Route
-                path="projects/:projectId/issues/:issueId"
-                element={<IssuePage />}
-              />
+              <Route path="projects/:projectId" element={<ProjectLayout />}>
+                <Route index element={<ProjectPage />} />
+                <Route path="issues" element={<IssuesPage />} />
+                <Route path="members" element={<ProjectMembersPage />} />
+                <Route path="labels" element={<LabelsPage />} />
+                <Route path="issues/:issueId" element={<IssuePage />} />
+              </Route>
 
               <Route
                 path="invitations"

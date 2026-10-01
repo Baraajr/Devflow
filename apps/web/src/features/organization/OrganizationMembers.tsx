@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useOutletContext, useParams } from 'react-router-dom';
 import { Search, UserPlus, LogOut } from 'lucide-react';
 
 import { useAuth } from '../../hooks/useAuth';
 import {
   useLeaveOrganization,
-  useOrganization,
+  useMyMembership,
   useOrganizationMembers,
   useRemoveOrganizationMember,
 } from '../../hooks/useOrganizations';
@@ -18,7 +18,11 @@ import MemberRow from '../../ui/MemberRow';
 import InviteUserForm from '../invitation/InviteUserForm';
 import ChangeMemberRoleForm from './ChangeMemberRoleForm';
 
-import type { OrganizationRole } from '../../types/organization';
+import type {
+  Organization,
+  OrganizationMember,
+  OrganizationRole,
+} from '../../types/organization';
 import { useModal } from '../../ui/ModalContext';
 import MemberActions from '../../ui/MemberActions';
 import EmptyMembersState from '../../ui/EmptyMembersState';
@@ -31,6 +35,7 @@ type SelectedMember = {
 
 function OrganizationMembers() {
   const { close } = useModal();
+
   const { organizationId } = useParams<{
     organizationId: string;
   }>();
@@ -42,30 +47,32 @@ function OrganizationMembers() {
     null,
   );
 
-  const { data: organization, isPending: isLoadingOrganization } =
-    useOrganization(organizationId);
+  const organization = useOutletContext<Organization>();
+
+  const { data: currentUserMember, isPending: isLoadingMembership } =
+    useMyMembership(organizationId);
+
+  const currentUserRole = currentUserMember?.role;
+
+  const canViewMembers =
+    currentUserRole === 'owner' || currentUserRole === 'manager';
 
   const {
     data: members,
     isPending: isLoadingMembers,
     isError: membersError,
-  } = useOrganizationMembers(organizationId);
+  } = useOrganizationMembers(canViewMembers ? organizationId : undefined);
 
-  const { mutate: removeMember, isPending: isRemoving } =
+  const { mutateAsync: removeMember, isPending: isRemoving } =
     useRemoveOrganizationMember();
 
-  const { mutate: leaveOrg, isPending: isLeaving } = useLeaveOrganization();
-
-  const currentUserMember = members?.find(
-    (member) => member.userId === user?.id,
-  );
-
-  const currentUserRole = currentUserMember?.role;
+  const { mutateAsync: leaveOrg, isPending: isLeaving } =
+    useLeaveOrganization();
 
   const isOwner = currentUserRole === 'owner';
   const isManager = currentUserRole === 'manager';
 
-  const filteredMembers = useMemo(() => {
+  const filteredMembers = useMemo<OrganizationMember[]>(() => {
     if (!members) return [];
 
     const query = search.trim().toLowerCase();
@@ -84,16 +91,30 @@ function OrganizationMembers() {
     });
   }, [members, search]);
 
-  if (isLoadingOrganization || isLoadingMembers) {
+  if (isLoadingMembership || (canViewMembers && isLoadingMembers)) {
     return <MembersPageSkeleton />;
+  }
+
+  if (!canViewMembers) {
+    return (
+      <div className="mx-auto max-w-7xl p-6 lg:p-8">
+        <div className="rounded-lg border border-danger/20 bg-danger/5 p-6">
+          <p className="text-sm font-medium text-danger">
+            You do not have permission to view organization members.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (membersError) {
     return (
-      <div className="rounded-lg border border-danger/20 bg-danger/5 p-6">
-        <p className="text-sm font-medium text-danger">
-          Failed to load organization members.
-        </p>
+      <div className="mx-auto max-w-7xl p-6 lg:p-8">
+        <div className="rounded-lg border border-danger/20 bg-danger/5 p-6">
+          <p className="text-sm font-medium text-danger">
+            Failed to load organization members.
+          </p>
+        </div>
       </div>
     );
   }
@@ -243,20 +264,16 @@ function OrganizationMembers() {
             description={`Are you sure you want to remove ${selectedMember.name} from this organization?`}
             confirmLabel="Remove member"
             cancelLabel="Keep member"
-            onConfirm={() => {
+            onConfirm={async () => {
               if (!organizationId) return;
 
-              removeMember(
-                {
-                  organizationId,
-                  userId: selectedMember.userId,
-                },
-                {
-                  onSuccess: () => {
-                    close();
-                  },
-                },
-              );
+              await removeMember({
+                organizationId,
+                userId: selectedMember.userId,
+              });
+
+              close();
+              setSelectedMember(null);
             }}
             disabled={isRemoving}
           />

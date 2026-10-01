@@ -1,11 +1,14 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { ProjectMember } from '../projects/entities/project-member.entity';
+import { ProjectRole } from '../projects/enums/project-role.enum';
 import { Issue } from './entities/issue.entity';
 import { Label } from '../label/entities/label.entity';
 
@@ -17,9 +20,43 @@ export class IssueLabelsService {
 
     @InjectRepository(Label)
     private readonly labelsRepository: Repository<Label>,
+
+    @InjectRepository(ProjectMember)
+    private readonly projectMemberRepository: Repository<ProjectMember>,
   ) {}
 
-  async addLabel(projectId: string, issueId: string, labelId: string) {
+  private async requireLabelManager(projectId: string, userId: string) {
+    const member = await this.projectMemberRepository.findOne({
+      where: {
+        projectId,
+        userId,
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Issue not found');
+    }
+
+    if (
+      member.role !== ProjectRole.ADMIN &&
+      member.role !== ProjectRole.DEVELOPER
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to manage issue labels',
+      );
+    }
+
+    return member;
+  }
+
+  async addLabel(
+    projectId: string,
+    issueId: string,
+    labelId: string,
+    userId: string,
+  ) {
+    await this.requireLabelManager(projectId, userId);
+
     const issue = await this.issuesRepository.findOne({
       where: {
         id: issueId,
@@ -60,7 +97,14 @@ export class IssueLabelsService {
     return label;
   }
 
-  async removeLabel(projectId: string, issueId: string, labelId: string) {
+  async removeLabel(
+    projectId: string,
+    issueId: string,
+    labelId: string,
+    userId: string,
+  ) {
+    await this.requireLabelManager(projectId, userId);
+
     const issue = await this.issuesRepository.findOne({
       where: {
         id: issueId,

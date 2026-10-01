@@ -1,23 +1,71 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Label } from './entities/label.entity';
+import { ProjectMember } from '../projects/entities/project-member.entity';
+import { ProjectRole } from '../projects/enums/project-role.enum';
 import { CreateLabelDto } from './dtos/create-label.dto';
 import { UpdateLabelDto } from './dtos/update-label.dto';
+import { Label } from './entities/label.entity';
 
 @Injectable()
 export class LabelsService {
   constructor(
     @InjectRepository(Label)
     private readonly labelsRepository: Repository<Label>,
+
+    @InjectRepository(ProjectMember)
+    private readonly projectMemberRepository: Repository<ProjectMember>,
   ) {}
 
-  async create(projectId: string, dto: CreateLabelDto) {
+  private async getProjectMember(projectId: string, userId: string) {
+    const member = await this.projectMemberRepository.findOne({
+      where: {
+        projectId,
+        userId,
+      },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Project not found');
+    }
+
+    return member;
+  }
+
+  private async requireLabelManager(projectId: string, userId: string) {
+    const member = await this.getProjectMember(projectId, userId);
+
+    if (
+      member.role !== ProjectRole.ADMIN &&
+      member.role !== ProjectRole.DEVELOPER
+    ) {
+      throw new ForbiddenException(
+        'You do not have permission to manage labels',
+      );
+    }
+
+    return member;
+  }
+
+  private async requireLabelAdmin(projectId: string, userId: string) {
+    const member = await this.getProjectMember(projectId, userId);
+
+    if (member.role !== ProjectRole.ADMIN) {
+      throw new ForbiddenException('Only project admins can delete labels');
+    }
+
+    return member;
+  }
+
+  async create(projectId: string, userId: string, dto: CreateLabelDto) {
+    await this.requireLabelManager(projectId, userId);
+
     const name = dto.name.trim();
 
     const existingLabel = await this.labelsRepository.findOne({
@@ -40,7 +88,9 @@ export class LabelsService {
     return this.labelsRepository.save(label);
   }
 
-  async findAll(projectId: string) {
+  async findAll(projectId: string, userId: string) {
+    await this.getProjectMember(projectId, userId);
+
     return this.labelsRepository.find({
       where: { projectId },
       order: {
@@ -49,7 +99,9 @@ export class LabelsService {
     });
   }
 
-  async findOne(projectId: string, labelId: string) {
+  async findOne(projectId: string, labelId: string, userId: string) {
+    await this.getProjectMember(projectId, userId);
+
     const label = await this.labelsRepository.findOne({
       where: {
         id: labelId,
@@ -64,8 +116,15 @@ export class LabelsService {
     return label;
   }
 
-  async update(projectId: string, labelId: string, dto: UpdateLabelDto) {
-    const label = await this.findOne(projectId, labelId);
+  async update(
+    projectId: string,
+    labelId: string,
+    userId: string,
+    dto: UpdateLabelDto,
+  ) {
+    await this.requireLabelManager(projectId, userId);
+
+    const label = await this.findOne(projectId, labelId, userId);
 
     if (dto.name !== undefined) {
       const name = dto.name.trim();
@@ -91,8 +150,10 @@ export class LabelsService {
     return this.labelsRepository.save(label);
   }
 
-  async remove(projectId: string, labelId: string) {
-    const label = await this.findOne(projectId, labelId);
+  async remove(projectId: string, labelId: string, userId: string) {
+    await this.requireLabelAdmin(projectId, userId);
+
+    const label = await this.findOne(projectId, labelId, userId);
 
     await this.labelsRepository.remove(label);
   }

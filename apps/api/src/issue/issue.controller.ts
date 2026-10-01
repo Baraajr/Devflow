@@ -86,21 +86,33 @@ export class IssueController {
 
   @Post(':issueId/labels/:labelId')
   addLabel(
+    @CurrentUser() user: User,
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @Param('issueId', ParseUUIDPipe) issueId: string,
     @Param('labelId', ParseUUIDPipe) labelId: string,
   ) {
-    return this.issueLabelsService.addLabel(projectId, issueId, labelId);
+    return this.issueLabelsService.addLabel(
+      projectId,
+      issueId,
+      labelId,
+      user.id,
+    );
   }
 
   @Delete(':issueId/labels/:labelId')
   @HttpCode(HttpStatus.NO_CONTENT)
   removeLabel(
+    @CurrentUser() user: User,
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @Param('issueId', ParseUUIDPipe) issueId: string,
     @Param('labelId', ParseUUIDPipe) labelId: string,
   ): Promise<void> {
-    return this.issueLabelsService.removeLabel(projectId, issueId, labelId);
+    return this.issueLabelsService.removeLabel(
+      projectId,
+      issueId,
+      labelId,
+      user.id,
+    );
   }
 
   @Delete(':issueId')

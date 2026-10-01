@@ -195,10 +195,7 @@ export class IssueService {
   ): Promise<Issue> {
     const member = await this.getProjectMember(projectId, userId);
 
-    if (
-      member.role !== ProjectRole.ADMIN &&
-      member.role !== ProjectRole.DEVELOPER
-    ) {
+    if (member.role !== ProjectRole.ADMIN) {
       throw new ForbiddenException(
         'You do not have permission to assign issues',
       );

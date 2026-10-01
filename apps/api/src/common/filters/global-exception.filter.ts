@@ -75,33 +75,23 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   ): ApiErrorResponse {
     const response = exceptionResponse as {
       message?: string | string[];
-      error?: string;
+      details?: ApiErrorDetail[];
     };
 
     const message = Array.isArray(response.message)
       ? 'Request validation failed'
       : (response.message ?? 'Request failed');
 
-    const details = Array.isArray(response.message)
-      ? this.buildValidationDetails(response.message)
-      : undefined;
-
     return {
       error: {
         code: this.getDefaultErrorCode(statusCode),
         message,
         statusCode,
-        ...(details && { details }),
+        ...(response.details && {
+          details: response.details,
+        }),
       },
     };
-  }
-
-  private buildValidationDetails(messages: string[]): ApiErrorDetail[] {
-    return [
-      {
-        messages,
-      },
-    ];
   }
 
   private getDefaultErrorCode(statusCode: number): string {

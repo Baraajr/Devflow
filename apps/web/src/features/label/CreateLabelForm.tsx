@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
 import { useCreateLabel } from '../../hooks/useLabels';
+import { isApiRequestError } from '../../services/api';
 import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Input';
 import { useModal } from '../../ui/ModalContext';
@@ -22,6 +23,7 @@ function CreateLabelForm({ projectId }: CreateLabelFormProps) {
     handleSubmit,
     formState: { errors },
     reset,
+    setError,
   } = useForm<CreateLabelFormData>({
     resolver: zodResolver(createLabelSchema),
     defaultValues: {
@@ -36,8 +38,19 @@ function CreateLabelForm({ projectId }: CreateLabelFormProps) {
 
       reset();
       close();
-    } catch {
-      // Error toast is already handled by the mutation.
+    } catch (error) {
+      if (!isApiRequestError(error) || !error.details?.length) {
+        return;
+      }
+
+      error.details.forEach(({ field, messages }) => {
+        if (field in data) {
+          setError(field as keyof CreateLabelFormData, {
+            type: 'server',
+            message: messages[0],
+          });
+        }
+      });
     }
   };
 
@@ -90,10 +103,6 @@ function CreateLabelForm({ projectId }: CreateLabelFormProps) {
           <p className="mt-1 text-sm text-red-500">{errors.color.message}</p>
         )}
       </div>
-
-      {createLabel.isError && (
-        <p className="text-sm text-red-500">{createLabel.error.message}</p>
-      )}
 
       <div className="flex justify-end">
         <Button

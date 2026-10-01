@@ -1,5 +1,5 @@
 export interface ApiErrorDetail {
-  field?: string;
+  field: string;
   messages: string[];
 }
 

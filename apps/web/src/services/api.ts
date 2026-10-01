@@ -5,6 +5,9 @@ import type { ApiError } from '../types/api-error';
 interface ApiErrorResponse {
   error: ApiError;
 }
+export function isApiRequestError(error: unknown): error is ApiRequestError {
+  return error instanceof ApiRequestError;
+}
 
 export class ApiRequestError extends Error {
   readonly code: string;

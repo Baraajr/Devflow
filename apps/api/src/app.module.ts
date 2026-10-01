@@ -1,4 +1,4 @@
-import { Module, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -14,6 +14,7 @@ import { ProjectModule } from './projects/project.module';
 import { IssueModule } from './issue/issue.module';
 import { LabelsModule } from './label/label.module';
 import { CommentModule } from './comment/comment.module';
+import { ValidationError } from 'class-validator';
 
 @Module({
   imports: [
@@ -61,6 +62,18 @@ import { CommentModule } from './comment/comment.module';
         whitelist: true,
         transform: true,
         forbidNonWhitelisted: true,
+
+        exceptionFactory: (errors: ValidationError[]) => {
+          const details = errors.map((error) => ({
+            field: error.property,
+            messages: Object.values(error.constraints ?? {}),
+          }));
+
+          return new BadRequestException({
+            message: 'Request validation failed',
+            details,
+          });
+        },
       }),
     },
   ],

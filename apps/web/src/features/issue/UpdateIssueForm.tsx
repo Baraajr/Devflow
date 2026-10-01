@@ -2,12 +2,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
 import { useUpdateIssue } from '../../hooks/useIssues';
+import { isApiRequestError } from '../../services/api';
 import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Input';
 import { Select } from '../../ui/Select';
-import { updateIssueSchema, type UpdateIssueFormData } from './issue.schema';
 import { Textarea } from '../../ui/TextArea';
 import { useModal } from '../../ui/ModalContext';
+import { updateIssueSchema, type UpdateIssueFormData } from './issue.schema';
 
 interface UpdateIssueFormProps {
   projectId: string;
@@ -27,6 +28,7 @@ function UpdateIssueForm({
     register,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm<UpdateIssueFormData>({
     resolver: zodResolver(updateIssueSchema),
     defaultValues,
@@ -38,9 +40,21 @@ function UpdateIssueForm({
         issueId,
         data,
       });
+
       close();
     } catch (error) {
-      // Error toast is already handled by the mutation.
+      if (!isApiRequestError(error) || !error.details?.length) {
+        return;
+      }
+
+      error.details.forEach(({ field, messages }) => {
+        if (field in data) {
+          setError(field as keyof UpdateIssueFormData, {
+            type: 'server',
+            message: messages[0],
+          });
+        }
+      });
     }
   };
 
@@ -127,10 +141,6 @@ function UpdateIssueForm({
           <option value="urgent">Urgent</option>
         </Select>
       </div>
-
-      {updateIssue.isError && (
-        <p className="text-sm text-red-500">{updateIssue.error.message}</p>
-      )}
 
       <div className="flex justify-end">
         <Button

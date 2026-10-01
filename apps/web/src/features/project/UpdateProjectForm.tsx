@@ -6,12 +6,14 @@ import { FormField } from '../../ui/FormField';
 import { Input } from '../../ui/Input';
 import { Textarea } from '../../ui/TextArea';
 import { useModal } from '../../ui/ModalContext';
-import { useProject, useUpdateProject } from '../../hooks/useProjects';
+import { useUpdateProject } from '../../hooks/useProjects';
 
 import {
   updateProjectSchema,
   type UpdateProjectFormValues,
 } from './project.schema';
+import { useOutletContext } from 'react-router-dom';
+import type { Project } from '../../types/project';
 
 interface UpdateProjectFormProps {
   organizationId: string;
@@ -22,8 +24,8 @@ function UpdateProjectForm({
   organizationId,
   projectId,
 }: UpdateProjectFormProps) {
-  // Fetch existing project data to pre-fill the form
-  const { data: project } = useProject(projectId);
+  const project = useOutletContext<Project>();
+
   const updateMutation = useUpdateProject(organizationId, projectId);
   const { close } = useModal();
 

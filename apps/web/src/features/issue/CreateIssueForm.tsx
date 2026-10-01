@@ -2,12 +2,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
 import { useCreateIssue } from '../../hooks/useIssues';
+import { isApiRequestError } from '../../services/api';
 import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Input';
 import { Select } from '../../ui/Select';
 import { Textarea } from '../../ui/TextArea';
-import { createIssueSchema, type CreateIssueFormData } from './issue.schema';
 import { useModal } from '../../ui/ModalContext';
+
+import { createIssueSchema, type CreateIssueFormData } from './issue.schema';
 
 interface CreateIssueFormProps {
   projectId: string;
@@ -23,6 +25,7 @@ function CreateIssueForm({ projectId }: CreateIssueFormProps) {
     handleSubmit,
     formState: { errors },
     reset,
+    setError,
   } = useForm<CreateIssueFormData>({
     resolver: zodResolver(createIssueSchema),
     defaultValues: {
@@ -39,8 +42,23 @@ function CreateIssueForm({ projectId }: CreateIssueFormProps) {
 
       reset();
       close();
-    } catch {
-      // Error toast is already handled by the mutation.
+    } catch (error) {
+      if (!isApiRequestError(error)) {
+        return;
+      }
+
+      if (error.details?.length) {
+        error.details.forEach(({ field, messages }) => {
+          if (field in data) {
+            setError(field as keyof CreateIssueFormData, {
+              type: 'server',
+              message: messages[0],
+            });
+          }
+        });
+
+        return;
+      }
     }
   };
 
@@ -122,10 +140,6 @@ function CreateIssueForm({ projectId }: CreateIssueFormProps) {
           <p className="mt-1 text-sm text-red-500">{errors.priority.message}</p>
         )}
       </div>
-
-      {createIssue.isError && (
-        <p className="text-sm text-red-500">{createIssue.error.message}</p>
-      )}
 
       <div className="flex justify-end">
         <Button

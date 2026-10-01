@@ -2,13 +2,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
 import { useUpdateLabel } from '../../hooks/useLabels';
+import { isApiRequestError } from '../../services/api';
 import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Input';
 import { useModal } from '../../ui/ModalContext';
 
-import { createLabelSchema, type CreateLabelFormData } from './label.schema';
-
 import type { Label } from '../../types/label';
+import { createLabelSchema, type CreateLabelFormData } from './label.schema';
 
 interface UpdateLabelFormProps {
   projectId: string;
@@ -24,6 +24,7 @@ function UpdateLabelForm({ projectId, label }: UpdateLabelFormProps) {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm<CreateLabelFormData>({
     resolver: zodResolver(createLabelSchema),
     defaultValues: {
@@ -40,8 +41,19 @@ function UpdateLabelForm({ projectId, label }: UpdateLabelFormProps) {
       });
 
       close();
-    } catch {
-      // Error toast is already handled by the mutation.
+    } catch (error) {
+      if (!isApiRequestError(error) || !error.details?.length) {
+        return;
+      }
+
+      error.details.forEach(({ field, messages }) => {
+        if (field in data) {
+          setError(field as keyof CreateLabelFormData, {
+            type: 'server',
+            message: messages[0],
+          });
+        }
+      });
     }
   };
 
@@ -94,10 +106,6 @@ function UpdateLabelForm({ projectId, label }: UpdateLabelFormProps) {
           <p className="mt-1 text-sm text-red-500">{errors.color.message}</p>
         )}
       </div>
-
-      {updateLabel.isError && (
-        <p className="text-sm text-red-500">{updateLabel.error.message}</p>
-      )}
 
       <div className="flex justify-end">
         <Button

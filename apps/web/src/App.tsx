@@ -21,6 +21,8 @@ import IssuePage from './pages/IssuePage';
 import ProjectMembersPage from './pages/ProjectMembersPage';
 import LabelsPage from './pages/LabelsPage';
 import ProjectLayout from './ui/ProjectLayout';
+import SprintsPage from './pages/SprintsPage';
+import SprintPage from './pages/SprintPage';
 
 function App() {
   return (
@@ -51,6 +53,8 @@ function App() {
 
               <Route path="projects/:projectId" element={<ProjectLayout />}>
                 <Route index element={<ProjectPage />} />
+                <Route path="sprints" element={<SprintsPage />} />
+                <Route path="sprints/:sprintId" element={<SprintPage />} />
                 <Route path="issues" element={<IssuesPage />} />
                 <Route path="members" element={<ProjectMembersPage />} />
                 <Route path="labels" element={<LabelsPage />} />

@@ -7,13 +7,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { CreateCommentDto } from './dtos/create-comment.dto';
-import { UpdateCommentDto } from './dtos/update-comment.dto';
-
 import { ProjectMember } from '../projects/entities/project-member.entity';
 import { ProjectRole } from '../projects/enums/project-role.enum';
-import { IssueComment } from './entities/comment.entity';
 import { IssueService } from '../issue/issue.service';
+import { CreateCommentDto } from './dtos/create-comment.dto';
+import { UpdateCommentDto } from './dtos/update-comment.dto';
+import { IssueComment } from './entities/comment.entity';
 
 @Injectable()
 export class CommentsService {
@@ -49,7 +48,6 @@ export class CommentsService {
     dto: CreateCommentDto,
   ) {
     await this.issueService.findOne(projectId, issueId, userId);
-    await this.getProjectMember(projectId, userId);
 
     const content = dto.content.trim();
 
@@ -68,7 +66,6 @@ export class CommentsService {
 
   async findAll(projectId: string, issueId: string, userId: string) {
     await this.issueService.findOne(projectId, issueId, userId);
-    await this.getProjectMember(projectId, userId);
 
     return this.commentsRepository.find({
       where: {
@@ -90,7 +87,6 @@ export class CommentsService {
     userId: string,
   ) {
     await this.issueService.findOne(projectId, issueId, userId);
-    await this.getProjectMember(projectId, userId);
 
     const comment = await this.commentsRepository.findOne({
       where: {
@@ -117,6 +113,8 @@ export class CommentsService {
     dto: UpdateCommentDto,
   ) {
     const member = await this.getProjectMember(projectId, userId);
+
+    await this.issueService.findOne(projectId, issueId, userId);
 
     const comment = await this.commentsRepository.findOne({
       where: {
@@ -154,6 +152,8 @@ export class CommentsService {
     userId: string,
   ) {
     const member = await this.getProjectMember(projectId, userId);
+
+    await this.issueService.findOne(projectId, issueId, userId);
 
     const comment = await this.commentsRepository.findOne({
       where: {

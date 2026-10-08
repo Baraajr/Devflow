@@ -33,4 +33,8 @@ export class CreateIssueDto {
   @IsOptional()
   @IsUUID()
   parentIssueId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  sprintId?: string;
 }

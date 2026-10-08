@@ -10,6 +10,7 @@ import { Textarea } from '../../ui/TextArea';
 import { useModal } from '../../ui/ModalContext';
 
 import { createIssueSchema, type CreateIssueFormData } from './issue.schema';
+import { useProjectSprints } from '../../hooks/useSprints';
 
 interface CreateIssueFormProps {
   projectId: string;
@@ -17,6 +18,7 @@ interface CreateIssueFormProps {
 
 function CreateIssueForm({ projectId }: CreateIssueFormProps) {
   const { close } = useModal();
+  const { data: projectSprints } = useProjectSprints(projectId);
 
   const createIssue = useCreateIssue(projectId);
 
@@ -33,6 +35,7 @@ function CreateIssueForm({ projectId }: CreateIssueFormProps) {
       description: '',
       issueType: 'task',
       priority: 'medium',
+      sprintId: '',
     },
   });
 
@@ -96,6 +99,28 @@ function CreateIssueForm({ projectId }: CreateIssueFormProps) {
           <p className="mt-1 text-sm text-red-500">
             {errors.description.message}
           </p>
+        )}
+      </div>
+
+      <div>
+        <label
+          htmlFor="sprint"
+          className="mb-1 block text-sm font-medium text-primary"
+        >
+          Sprint
+        </label>
+
+        <Select id="sprint" {...register('sprintId')}>
+          <option value="">No Sprint</option>
+          {projectSprints?.map((sprint) => (
+            <option value={sprint.id} key={sprint.id}>
+              {sprint.name}
+            </option>
+          ))}
+        </Select>
+
+        {errors.priority && (
+          <p className="mt-1 text-sm text-red-500">{errors.priority.message}</p>
         )}
       </div>
 

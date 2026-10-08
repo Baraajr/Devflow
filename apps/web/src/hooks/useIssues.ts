@@ -14,11 +14,18 @@ import type {
   CreateIssueFormData,
   UpdateIssueFormData,
 } from '../features/issue/issue.schema';
+import type { IssueSort } from '../types/issue';
 
-export function useProjectIssues(projectId: string) {
+export function useProjectIssues(
+  projectId: string,
+  page = 1,
+  limit = 20,
+  sort: IssueSort = 'issueNumber',
+  order: 'asc' | 'desc' = 'desc',
+) {
   return useQuery({
-    queryKey: ['issues', projectId],
-    queryFn: () => getProjectIssues(projectId),
+    queryKey: ['issues', projectId, sort, order, page, limit],
+    queryFn: () => getProjectIssues(projectId, { page, limit, sort, order }),
     enabled: !!projectId,
   });
 }
@@ -69,7 +76,7 @@ export function useUpdateIssue(projectId: string) {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ['issue', projectId, variable.issueId],
+        queryKey: ['issue', projectId, variables.issueId],
       });
 
       toast.success('Issue updated successfully');

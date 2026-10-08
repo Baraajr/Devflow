@@ -36,4 +36,8 @@ export class UpdateIssueDto {
   @IsOptional()
   @IsUUID()
   parentIssueId?: string | null;
+
+  @IsOptional()
+  @IsUUID()
+  sprintId?: string;
 }

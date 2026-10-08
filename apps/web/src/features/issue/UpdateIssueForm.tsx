@@ -9,6 +9,7 @@ import { Select } from '../../ui/Select';
 import { Textarea } from '../../ui/TextArea';
 import { useModal } from '../../ui/ModalContext';
 import { updateIssueSchema, type UpdateIssueFormData } from './issue.schema';
+import { useProjectSprints } from '../../hooks/useSprints';
 
 interface UpdateIssueFormProps {
   projectId: string;
@@ -23,6 +24,7 @@ function UpdateIssueForm({
 }: UpdateIssueFormProps) {
   const { close } = useModal();
   const updateIssue = useUpdateIssue(projectId);
+  const { data: projectSprints } = useProjectSprints(projectId);
 
   const {
     register,
@@ -92,6 +94,28 @@ function UpdateIssueForm({
           <p className="mt-1 text-sm text-red-500">
             {errors.description.message}
           </p>
+        )}
+      </div>
+
+      <div>
+        <label
+          htmlFor="sprint"
+          className="mb-1 block text-sm font-medium text-primary"
+        >
+          Sprint
+        </label>
+
+        <Select id="sprint" {...register('sprintId')}>
+          <option value="">No Sprint</option>
+          {projectSprints?.map((sprint) => (
+            <option value={sprint.id} key={sprint.id}>
+              {sprint.name}
+            </option>
+          ))}
+        </Select>
+
+        {errors.priority && (
+          <p className="mt-1 text-sm text-red-500">{errors.priority.message}</p>
         )}
       </div>
 

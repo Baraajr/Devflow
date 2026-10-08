@@ -17,6 +17,8 @@ export const createIssueSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
 
   parentIssueId: z.uuid().optional(),
+
+  sprintId: z.uuid().optional(),
 });
 
 export const updateIssueSchema = z.object({
@@ -38,9 +40,9 @@ export const updateIssueSchema = z.object({
 
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
 
-  assigneeId: z.uuid().nullable().optional(),
-
   parentIssueId: z.uuid().nullable().optional(),
+
+  sprintId: z.uuid().optional(),
 });
 
 export type CreateIssueFormData = z.infer<typeof createIssueSchema>;

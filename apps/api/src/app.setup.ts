@@ -1,5 +1,6 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, Logger } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
 
 function setupApp(app: INestApplication): void {
   app.enableCors({
@@ -8,7 +9,16 @@ function setupApp(app: INestApplication): void {
   });
 
   app.setGlobalPrefix('api/v1');
+  const logger = new Logger('HTTP');
 
+  // Register Morgan globally
+  app.use(
+    morgan('dev', {
+      stream: {
+        write: (message: string) => logger.log(message.trim()),
+      },
+    }),
+  );
   app.use(cookieParser());
 }
 

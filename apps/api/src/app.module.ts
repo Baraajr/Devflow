@@ -15,6 +15,7 @@ import { IssueModule } from './issue/issue.module';
 import { LabelsModule } from './label/label.module';
 import { CommentModule } from './comment/comment.module';
 import { ValidationError } from 'class-validator';
+import { SprintModule } from './sprint/sprint.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { ValidationError } from 'class-validator';
     IssueModule,
     LabelsModule,
     CommentModule,
+    SprintModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },

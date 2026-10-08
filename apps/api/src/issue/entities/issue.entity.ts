@@ -16,6 +16,7 @@ import { IssueStatus } from '../enums/Issue-status.enum';
 import { IssueType } from '../enums/Issue-type.enum';
 import { IssuePriority } from '../enums/Issue-priority.enum';
 import { Label } from '../../label/entities/label.entity';
+import { Sprint } from '../../sprint/entities/sprint.entity';
 
 @Entity('issues')
 export class Issue {
@@ -136,4 +137,14 @@ export class Issue {
     },
   })
   labels: Label[];
+
+  @Column({ nullable: true, type: 'uuid' })
+  sprintId: string | null;
+
+  @ManyToOne(() => Sprint, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'sprintId' })
+  sprint: Sprint | null;
 }

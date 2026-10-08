@@ -2,14 +2,49 @@ import type {
   CreateIssueFormData,
   UpdateIssueFormData,
 } from '../features/issue/issue.schema';
-import type { Issue } from '../types/issue';
+import type { Issue, IssueListResponse } from '../types/issue';
 import type { Label } from '../types/label';
 import { apiRequest } from './api';
 
-export function getProjectIssues(projectId: string) {
-  return apiRequest<Issue[]>(`projects/${projectId}/issues`, {
-    method: 'GET',
-  });
+export function getProjectIssues(
+  projectId: string,
+  {
+    page,
+    limit,
+    sort,
+    order,
+  }: {
+    page?: number;
+    limit?: number;
+    sort?: string;
+    order?: 'asc' | 'desc';
+  } = {},
+) {
+  const params = new URLSearchParams();
+  if (page !== undefined) {
+    params.append('page', String(page));
+  }
+
+  if (limit !== undefined) {
+    params.append('limit', String(limit));
+  }
+
+  if (sort) {
+    params.append('sort', sort);
+  }
+
+  if (order) {
+    params.append('order', order);
+  }
+
+  const queryString = params.toString();
+
+  return apiRequest<IssueListResponse>(
+    `projects/${projectId}/issues${queryString ? `?${queryString}` : ''}`,
+    {
+      method: 'GET',
+    },
+  );
 }
 
 export function getIssue(projectId: string, issueId: string) {

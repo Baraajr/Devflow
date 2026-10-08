@@ -14,6 +14,9 @@ import { ProjectMember } from '../projects/entities/project-member.entity';
 import { ProjectRole } from '../projects/enums/project-role.enum';
 import { IssuePriority } from './enums/Issue-priority.enum';
 import { IssueStatus } from './enums/Issue-status.enum';
+import { ApiFeatures } from '../common/utils/api-features';
+import type { QueryString } from '../common/types/types';
+import { IssueListResponse } from './types/issues';
 
 @Injectable()
 export class IssueService {
@@ -52,28 +55,40 @@ export class IssueService {
       priority: dto.priority ?? IssuePriority.MEDIUM,
       status: IssueStatus.TODO,
       parentIssueId: dto.parentIssueId ?? null,
+      sprintId: dto.parentIssueId ?? null,
       issueNumber,
     });
 
     return this.issueRepository.save(issue);
   }
 
-  async findAll(projectId: string, userId: string): Promise<Issue[]> {
+  async findAll(
+    projectId: string,
+    userId: string,
+    queryString: QueryString,
+  ): Promise<IssueListResponse> {
     await this.getProjectMember(projectId, userId);
 
-    return this.issueRepository.find({
-      where: {
-        projectId,
-      },
-      relations: {
-        reporter: true,
-        assignee: true,
-        labels: true,
-      },
-      order: {
-        issueNumber: 'DESC',
-      },
-    });
+    const query = this.issueRepository
+      .createQueryBuilder('issue')
+      .leftJoinAndSelect('issue.reporter', 'reporter')
+      .leftJoinAndSelect('issue.assignee', 'assignee')
+      .leftJoinAndSelect('issue.labels', 'labels')
+      .where('issue.projectId = :projectId', { projectId });
+
+    const count = await query.getCount();
+
+    const features = new ApiFeatures(query, queryString)
+      .filter()
+      .sort()
+      .paginate(count);
+
+    const issues = await features.getQuery().getMany();
+
+    return {
+      data: issues,
+      pagination: features.getPaginationResult()!,
+    };
   }
 
   async findOne(

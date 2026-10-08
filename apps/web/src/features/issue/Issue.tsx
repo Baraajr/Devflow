@@ -195,6 +195,7 @@ function Issue() {
   } = useProjectMembers(projectId);
 
   const project = useOutletContext<Project>();
+
   const {
     data: issue,
     isLoading: isIssueLoading,
@@ -250,13 +251,16 @@ function Issue() {
 
   if (isIssueLoading) {
     return (
-      <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
-        <div className="h-8 w-64 animate-pulse rounded-lg bg-surface" />
-        <div className="h-48 animate-pulse rounded-3xl bg-surface" />
+      <div className="space-y-6">
+        <div className="h-6 w-48 animate-pulse rounded-lg bg-surface" />
+        <div className="h-32 animate-pulse rounded-3xl bg-surface" />
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="h-24 animate-pulse rounded-2xl bg-surface" />
-          <div className="h-24 animate-pulse rounded-2xl bg-surface" />
-          <div className="h-24 animate-pulse rounded-2xl bg-surface" />
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-24 animate-pulse rounded-2xl bg-surface"
+            />
+          ))}
         </div>
       </div>
     );
@@ -264,7 +268,7 @@ function Issue() {
 
   if (isError) {
     return (
-      <div className="mx-auto max-w-2xl space-y-4 p-6 lg:p-8">
+      <div className="mx-auto max-w-2xl space-y-4">
         <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
           <p className="text-sm font-medium text-red-500">{error.message}</p>
         </div>
@@ -278,7 +282,12 @@ function Issue() {
 
   if (!issue || !project) {
     return (
-      <div className="p-6 text-sm text-muted-foreground">Issue not found.</div>
+      <div className="rounded-2xl border border-dashed border-border bg-surface/50 px-6 py-14 text-center">
+        <h2 className="font-semibold text-primary">Issue not found</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          It may have been deleted or moved.
+        </p>
+      </div>
     );
   }
 
@@ -294,7 +303,7 @@ function Issue() {
   const priorityTone = PRIORITY_TONES[issue.priority] ?? NEUTRAL;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6 lg:p-8">
+    <div className="space-y-6">
       {/* Top bar */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -337,17 +346,17 @@ function Issue() {
       </div>
 
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl border border-border bg-linear-to-br from-primary/10 via-surface to-surface px-8 py-10 shadow-sm lg:px-12 lg:py-14">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+      <section className="relative overflow-hidden rounded-3xl border border-border bg-linear-to-br from-primary/10 via-surface to-surface px-8 py-8 shadow-sm">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
 
-        <div className="relative max-w-4xl space-y-5">
-          <span className="inline-flex rounded-full bg-primary/10 px-3 py-1 font-mono text-xs font-semibold tracking-wider text-primary">
-            {project.key}-{issue.issueNumber}
-          </span>
-
-          <h1 className="text-4xl font-semibold leading-[1.15] tracking-tight text-primary lg:text-5xl">
+        <div className="relative flex flex-wrap items-center gap-3">
+          <h1 className="text-3xl font-semibold tracking-tight text-primary">
             {issue.title}
           </h1>
+
+          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-primary">
+            {project.key}-{issue.issueNumber}
+          </span>
         </div>
       </section>
 
@@ -387,6 +396,7 @@ function Issue() {
               </p>
             )}
           </Card>
+
           <Card
             title="Labels"
             icon={<Tag className="h-4 w-4 text-muted-foreground" />}
@@ -446,13 +456,15 @@ function Issue() {
                 </span>
               )}
             </div>
-          </Card>{' '}
+          </Card>
+
           <Comments
             projectId={projectId ?? ''}
             issueId={issue.id}
             currentUserId={user?.id ?? ''}
           />
         </div>
+
         {/* Right rail */}
         <aside className="space-y-6 lg:sticky lg:top-6">
           <Card title="People">
@@ -488,7 +500,7 @@ function Issue() {
           <Card title="Timeline">
             <ol className="relative space-y-6 border-l border-border pl-6">
               <li className="relative">
-                <span className="absolute -left-7.25 top-1 h-3 w-3 rounded-full border-2 border-surface bg-primary" />
+                <span className="absolute -left-7.5 top-1 h-3 w-3 rounded-full border-2 border-surface bg-primary" />
                 <p className="text-xs text-muted-foreground">Created</p>
                 <p className="mt-0.5 text-sm font-medium text-primary">
                   {new Date(issue.createdAt).toLocaleDateString()}
@@ -496,7 +508,7 @@ function Issue() {
               </li>
 
               <li className="relative">
-                <span className="absolute -left-7.25 top-1 h-3 w-3 rounded-full border-2 border-surface bg-muted-foreground/50" />
+                <span className="absolute -left-7.5 top-1 h-3 w-3 rounded-full border-2 border-surface bg-muted-foreground/50" />
                 <p className="text-xs text-muted-foreground">Last updated</p>
                 <p className="mt-0.5 text-sm font-medium text-primary">
                   {new Date(issue.updatedAt).toLocaleDateString()}
@@ -505,7 +517,6 @@ function Issue() {
             </ol>
           </Card>
         </aside>
-        {/* Comments */}
       </div>
 
       {/* Modals */}

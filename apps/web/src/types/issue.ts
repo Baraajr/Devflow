@@ -33,3 +33,24 @@ export interface Issue {
   createdAt: string;
   updatedAt: string;
 }
+
+export type IssueSort =
+  | 'issueNumber'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'title'
+  | 'priority';
+
+export type PaginationResult = {
+  currentPage: number;
+  limit: number;
+  numberOfPages: number;
+  total: number;
+  next?: number;
+  prev?: number;
+};
+
+export type IssueListResponse = {
+  data: Issue[];
+  pagination: PaginationResult;
+};

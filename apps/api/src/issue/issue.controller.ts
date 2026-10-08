@@ -9,6 +9,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -23,6 +24,7 @@ import { AssignIssueDto } from './dtos/assign-issue.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
+import type { QueryString } from '../common/types/types';
 
 @ApiTags('Issues')
 @Controller('projects/:projectId/issues')
@@ -46,8 +48,9 @@ export class IssueController {
   findAll(
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @CurrentUser() user: User,
+    @Query() query: QueryString,
   ) {
-    return this.issueService.findAll(projectId, user.id);
+    return this.issueService.findAll(projectId, user.id, query);
   }
 
   @Get(':issueId')

@@ -1,4 +1,4 @@
-import Issues from '../features/issue/issues';
+import Issues from '../features/issue/Issues';
 import Modal from '../ui/Modal';
 
 function IssuesPage() {

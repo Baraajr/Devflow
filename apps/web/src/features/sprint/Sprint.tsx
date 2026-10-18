@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
@@ -77,6 +77,7 @@ function SprintContent({
     Record<string, IssueStatus>
   >({});
 
+  const navigate = useNavigate();
   const { data: sprint, isPending, isError } = useSprint(projectId, sprintId);
   const { mutate: startSprint, isPending: isStarting } =
     useStartSprint(projectId);
@@ -305,7 +306,10 @@ function SprintContent({
           title="Delete Sprint?"
           confirmLabel="Delete"
           cancelLabel="Cancel"
-          onConfirm={() => deleteSprint(sprintId)}
+          onConfirm={() => {
+            deleteSprint(sprintId);
+            navigate(-1);
+          }}
           disabled={isDeleting}
         />
       </Modal.Window>

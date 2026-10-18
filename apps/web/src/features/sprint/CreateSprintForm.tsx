@@ -66,8 +66,13 @@ function CreateSprintForm({ projectId }: CreateSprintFormProps) {
       </div>
 
       <div>
+        <label htmlFor="name" className="mb-1 block text-sm font-medium ">
+          Name
+        </label>
         <Input
+          id="name"
           placeholder="Sprint name"
+          required
           {...register('name')}
           error={!!errors.name}
         />
@@ -76,9 +81,15 @@ function CreateSprintForm({ projectId }: CreateSprintFormProps) {
           <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
         )}
       </div>
-
       <div>
+        <label
+          htmlFor="description"
+          className="mb-1 block text-sm font-medium "
+        >
+          Description
+        </label>
         <Textarea
+          id="description"
           placeholder="Sprint goal..."
           rows={4}
           {...register('goal')}
@@ -91,16 +102,14 @@ function CreateSprintForm({ projectId }: CreateSprintFormProps) {
       </div>
 
       <div>
-        <label
-          htmlFor="startDate"
-          className="mb-1 block text-sm font-medium text-primary"
-        >
+        <label htmlFor="startDate" className="mb-1 block text-sm font-medium ">
           Start date
         </label>
 
         <Input
           id="startDate"
           type="date"
+          required
           {...register('startDate')}
           error={!!errors.startDate}
         />
@@ -113,16 +122,14 @@ function CreateSprintForm({ projectId }: CreateSprintFormProps) {
       </div>
 
       <div>
-        <label
-          htmlFor="endDate"
-          className="mb-1 block text-sm font-medium text-primary"
-        >
+        <label htmlFor="endDate" className="mb-1 block text-sm font-medium ">
           End date
         </label>
 
         <Input
           id="endDate"
           type="date"
+          required
           {...register('endDate')}
           error={!!errors.endDate}
         />

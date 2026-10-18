@@ -18,7 +18,7 @@ export const createIssueSchema = z.object({
 
   parentIssueId: z.uuid().optional(),
 
-  sprintId: z.uuid().optional(),
+  sprintId: z.union([z.literal(''), z.uuid()]).optional(),
 });
 
 export const updateIssueSchema = z.object({
@@ -42,7 +42,7 @@ export const updateIssueSchema = z.object({
 
   parentIssueId: z.uuid().nullable().optional(),
 
-  sprintId: z.uuid().optional(),
+  sprintId: z.union([z.literal(''), z.uuid()]).optional(),
 });
 
 export type CreateIssueFormData = z.infer<typeof createIssueSchema>;

@@ -14,9 +14,13 @@ export const createSprintSchema = z
       .max(500, 'Goal cannot exceed 500 characters')
       .optional(),
 
-    startDate: z.string().optional(),
+    startDate: z.iso.date({
+      error: 'Start date is required',
+    }),
 
-    endDate: z.string().optional(),
+    endDate: z.iso.date({
+      error: 'End date is required',
+    }),
   })
   .refine(
     (data) => {

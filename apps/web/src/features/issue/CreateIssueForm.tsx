@@ -41,7 +41,10 @@ function CreateIssueForm({ projectId }: CreateIssueFormProps) {
 
   const onSubmit = async (data: CreateIssueFormData) => {
     try {
-      await createIssue.mutateAsync(data);
+      await createIssue.mutateAsync({
+        ...data,
+        sprintId: data.sprintId || undefined,
+      });
 
       reset();
       close();
@@ -76,7 +79,14 @@ function CreateIssueForm({ projectId }: CreateIssueFormProps) {
       </div>
 
       <div>
+        <label
+          htmlFor="title"
+          className="mb-1 block text-sm font-medium text-primary"
+        >
+          Title
+        </label>
         <Input
+          id="title"
           placeholder="Issue title"
           {...register('title')}
           error={!!errors.title}
@@ -88,7 +98,14 @@ function CreateIssueForm({ projectId }: CreateIssueFormProps) {
       </div>
 
       <div>
+        <label
+          htmlFor="description"
+          className="mb-1 block text-sm font-medium text-primary"
+        >
+          Description
+        </label>
         <Textarea
+          id="description"
           placeholder="Describe the issue..."
           rows={5}
           {...register('description')}
@@ -119,8 +136,8 @@ function CreateIssueForm({ projectId }: CreateIssueFormProps) {
           ))}
         </Select>
 
-        {errors.priority && (
-          <p className="mt-1 text-sm text-red-500">{errors.priority.message}</p>
+        {errors.sprintId && (
+          <p className="mt-1 text-sm text-red-500">{errors.sprintId.message}</p>
         )}
       </div>
 

@@ -548,7 +548,6 @@ function Issue() {
             issueType: issue.issueType,
             status: issue.status,
             priority: issue.priority,
-            assigneeId: issue.assigneeId,
             parentIssueId: issue.parentIssueId,
           }}
         />

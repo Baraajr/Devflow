@@ -1,4 +1,4 @@
-import Labels from '../features/label/labels';
+import Labels from '../features/label/Labels';
 import Modal from '../ui/Modal';
 
 function LabelsPage() {

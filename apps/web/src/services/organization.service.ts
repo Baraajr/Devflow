@@ -31,7 +31,6 @@ export async function getOrganizationMembers(
     `/organization/${orgId}/members`,
   );
 
-  console.log(res);
   return res;
 }
 

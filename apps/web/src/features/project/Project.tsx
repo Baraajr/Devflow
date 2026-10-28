@@ -1,17 +1,64 @@
 import { NavLink, useParams } from 'react-router-dom';
-import { Pencil, Trash2 } from 'lucide-react';
+import { CalendarRange, ListTodo, Pencil, Trash2, Users } from 'lucide-react';
 
 import Modal from '../../ui/Modal';
 import ConfirmDialog from '../../ui/ConfirmDialog';
-import { Spinner } from '../../ui/Spinner';
-
 import UpdateProjectForm from './UpdateProjectForm';
-
-import { useDeleteProject, useProject } from '../../hooks/useProjects';
-
 import { Button } from '../../ui/Button';
 import { Tooltip } from '../../ui/Tooltip';
+
+import {
+  useDeleteProject,
+  useProject,
+  useProjectMembers,
+} from '../../hooks/useProjects';
 import { useProjectIssues } from '../../hooks/useIssues';
+import { useProjectSprints } from '../../hooks/useSprints';
+
+function StatTile({
+  to,
+  label,
+  icon,
+  count,
+  isPending,
+  isError,
+}: {
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+  count: number;
+  isPending: boolean;
+  isError: boolean;
+}) {
+  return (
+    <NavLink
+      to={to}
+      className="group rounded-2xl border border-border bg-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition group-hover:scale-110">
+          {icon}
+        </span>
+      </div>
+
+      {isError ? (
+        <p className="mt-4 text-sm font-medium text-red-500">
+          Failed to load {label.toLowerCase()}.
+        </p>
+      ) : isPending ? (
+        <div className="mt-4 h-9 w-16 animate-pulse rounded-lg bg-muted" />
+      ) : (
+        <p className="mt-3 text-3xl font-semibold tracking-tight text-primary">
+          {count}
+        </p>
+      )}
+    </NavLink>
+  );
+}
 
 function Project() {
   const { organizationId, projectId } = useParams<{
@@ -19,139 +66,138 @@ function Project() {
     projectId: string;
   }>();
 
-  if (!organizationId || !projectId) {
-    return (
-      <div className="rounded-lg border border-destructive/25 bg-destructive/5 p-4">
-        <p className="text-sm text-destructive">Invalid project URL.</p>
-      </div>
-    );
-  }
+  const { data: project } = useProject(projectId);
+
   const {
     data: issues,
     isPending: isLoadingIssues,
-    isError: issuesError,
-  } = useProjectIssues(projectId);
+    isError: isIssuesError,
+  } = useProjectIssues(projectId ?? '');
 
   const {
-    data: project,
-    isPending: isProjectPending,
-    isError: isProjectError,
-  } = useProject(projectId);
+    data: sprints,
+    isPending: isLoadingSprints,
+    isError: isSprintsError,
+  } = useProjectSprints(projectId ?? '');
+
+  const {
+    data: members,
+    isPending: isLoadingMembers,
+    isError: isMembersError,
+  } = useProjectMembers(projectId);
 
   const { mutate: deleteProject, isPending: isDeletingProject } =
-    useDeleteProject(organizationId, projectId);
+    useDeleteProject(organizationId ?? '', projectId ?? '');
 
-  if (isProjectPending) {
+  if (!organizationId || !projectId) {
     return (
-      <div className="flex min-h-75 items-center justify-center">
-        <Spinner size="lg" />
+      <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
+        <p className="text-sm font-medium text-red-500">Invalid project URL.</p>
       </div>
     );
   }
 
-  if (isProjectError) {
-    return (
-      <div className="rounded-lg border border-destructive/25 bg-destructive/5 p-4">
-        <p className="text-sm text-destructive">Failed to load project.</p>
-      </div>
-    );
-  }
+  const basePath = `/organizations/${organizationId}/projects/${projectId}`;
 
   return (
     <Modal>
-      <div className="mx-auto max-w-5xl space-y-6 p-6">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 pb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Project Overview
-            </h1>
+        <section className="relative overflow-hidden rounded-3xl border border-border bg-linear-to-br from-primary/10 via-surface to-surface px-8 py-8 shadow-sm">
+          <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
 
-            <p className="text-sm text-gray-500">
-              Viewing details for project ID:
-              <span className="font-mono">{project.name}</span>
-            </p>
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3">
+                <h1 className="truncate text-3xl font-semibold tracking-tight text-primary">
+                  {project?.name ?? 'Project'}
+                </h1>
+
+                {project?.key && (
+                  <span className="rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-primary">
+                    {project.key}
+                  </span>
+                )}
+              </div>
+
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                Manage issues, sprints, and project members.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-1 rounded-xl border border-border bg-surface p-1 shadow-sm">
+              <Tooltip text="Edit project" position="bottom-left">
+                <Modal.Open opens="update-project">
+                  <Button variant="ghost" type="button">
+                    <Pencil className="h-5 w-5" />
+                  </Button>
+                </Modal.Open>
+              </Tooltip>
+
+              <div className="mx-1 h-5 w-px bg-border" />
+
+              <Tooltip text="Delete project" position="bottom-left">
+                <Modal.Open opens="delete-project">
+                  <Button variant="ghost" type="button">
+                    <Trash2 className="h-5 w-5 text-red-500" />
+                  </Button>
+                </Modal.Open>
+              </Tooltip>
+            </div>
           </div>
+        </section>
 
-          <div className="flex items-center gap-2">
-            <Tooltip position="bottom-left" text="edit project">
-              <Modal.Open opens="update-project">
-                <Button
-                  variant="ghost"
-                  type="button"
-                  title="Update Project"
-                  className="cursor-pointer rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary-600"
-                >
-                  <Pencil className="h-5 w-5" />
-                </Button>
-              </Modal.Open>
-            </Tooltip>
-            <Tooltip position="bottom-left" text="delete project">
-              <Modal.Open opens="delete-project">
-                <Button
-                  variant="ghost"
-                  type="button"
-                  title="Delete Project"
-                  className="cursor-pointer rounded-lg p-2 text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </Button>
-              </Modal.Open>
-            </Tooltip>
-          </div>
-        </div>
+        {/* Stats */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <StatTile
+            to={`${basePath}/issues`}
+            label="Issues"
+            icon={<ListTodo className="h-4 w-4" />}
+            count={issues?.pagination.total ?? 0}
+            isPending={isLoadingIssues}
+            isError={isIssuesError}
+          />
 
-        {/* Project Stats */}
-        {/* Project Stats */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-xl border border-border bg-surface p-6 shadow-sm">
-            <p className="text-sm font-medium text-muted-foreground">Status</p>
-            <p className="mt-1 text-lg font-semibold text-success">Active</p>
-          </div>
+          <StatTile
+            to={`${basePath}/sprints`}
+            label="Sprints"
+            icon={<CalendarRange className="h-4 w-4" />}
+            count={sprints?.length ?? 0}
+            isPending={isLoadingSprints}
+            isError={isSprintsError}
+          />
 
-          <NavLink
-            to={'issues'}
-            className="rounded-xl border border-border bg-surface p-6 shadow-sm"
-          >
-            {issuesError ? (
-              <p>Error loading issues</p>
-            ) : isLoadingIssues ? (
-              <Spinner />
-            ) : (
-              <>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Issues
-                </p>
-                <p className="mt-1 text-lg font-semibold text-primary">
-                  {issues?.length}
-                </p>
-              </>
-            )}
-          </NavLink>
-
-          <div className="rounded-xl border border-border bg-surface p-6 shadow-sm">
-            <p className="text-sm font-medium text-muted-foreground">
-              Due Date
-            </p>
-            <p className="mt-1 text-lg font-semibold text-primary">
-              Oct 31, 2026
-            </p>
-          </div>
+          <StatTile
+            to={`${basePath}/members`}
+            label="Members"
+            icon={<Users className="h-4 w-4" />}
+            count={members?.length ?? 0}
+            isPending={isLoadingMembers}
+            isError={isMembersError}
+          />
         </div>
 
         {/* Description */}
-        <div className="space-y-3 rounded-xl border border-border bg-surface p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-foreground">
-            Project Description
-          </h2>
+        <section className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+          <div className="px-6 pt-5">
+            <h2 className="text-sm font-semibold text-primary">Description</h2>
+          </div>
 
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {project.description || 'No description provided.'}
-          </p>
-        </div>
+          <div className="p-6">
+            {project?.description ? (
+              <p className="whitespace-pre-wrap text-base leading-8 text-muted-foreground">
+                {project.description}
+              </p>
+            ) : (
+              <p className="text-sm italic text-muted-foreground">
+                No description provided.
+              </p>
+            )}
+          </div>
+        </section>
       </div>
 
-      {/* Update Project */}
+      {/* Modals */}
       <Modal.Window name="update-project">
         <UpdateProjectForm
           organizationId={organizationId}
@@ -159,10 +205,9 @@ function Project() {
         />
       </Modal.Window>
 
-      {/* Delete Project */}
       <Modal.Window name="delete-project">
         <ConfirmDialog
-          title={`Delete Project? ${project.name}`}
+          title="Delete Project?"
           confirmLabel="Delete"
           cancelLabel="Cancel"
           onConfirm={deleteProject}

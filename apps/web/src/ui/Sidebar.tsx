@@ -96,28 +96,45 @@ function Sidebar() {
 
   const backLabel = projectId ? 'Projects' : 'Organizations';
 
-  return (
-    <aside className="hidden w-64 shrink-0 border-r bg-surface md:block">
-      <div className="flex h-16 items-center border-b px-5">
-        <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">Workspace</p>
+  const sectionLabel = projectId
+    ? 'Project'
+    : organizationId
+      ? 'Organization'
+      : 'Menu';
 
-          <h1 className="truncate text-sm font-semibold">
+  return (
+    <aside className="hidden w-64 shrink-0 border-r border-border bg-surface md:block">
+      {/* Workspace */}
+      <div className="flex h-16 items-center gap-3 border-b border-border px-6">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-semibold uppercase text-primary">
+          {user?.firstName?.[0] ?? 'W'}
+        </span>
+
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Workspace
+          </p>
+
+          <h1 className="truncate text-sm font-semibold text-primary">
             {user?.firstName}'s Workspace
           </h1>
         </div>
       </div>
 
-      <div className="sticky top-0 flex h-[calc(100vh-4rem)] flex-col px-3 py-4">
+      <div className="sticky top-0 flex h-[calc(100vh-4rem)] flex-col px-4 py-5">
         {(organizationId || projectId) && (
           <NavLink
             to={backHref}
-            className="mb-5 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+            className="group mb-6 flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-sm font-medium text-muted-foreground shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:text-primary hover:shadow-md"
           >
-            <ArrowLeft className="size-4" />
+            <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
             <span>{backLabel}</span>
           </NavLink>
         )}
+
+        <p className="mb-2 px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {sectionLabel}
+        </p>
 
         <nav className="space-y-1">
           {navigation.map(({ label, href, icon: Icon, end }) => (
@@ -127,7 +144,7 @@ function Sidebar() {
               end={end}
               className={({ isActive }) =>
                 [
-                  'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+                  'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
                   isActive
                     ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:bg-surface-hover hover:text-foreground',
@@ -151,8 +168,10 @@ function Sidebar() {
           ))}
         </nav>
 
-        <div className="mt-auto border-t pt-4">
-          <p className="px-3 text-xs text-muted-foreground">DevFlow</p>
+        <div className="mt-auto border-t border-border pt-4">
+          <p className="px-3 text-xs font-medium text-muted-foreground">
+            DevFlow
+          </p>
         </div>
       </div>
     </aside>

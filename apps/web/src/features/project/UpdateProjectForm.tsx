@@ -64,7 +64,9 @@ function UpdateProjectForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight">Update project</h2>
+        <h2 className="text-xl font-semibold tracking-tight">
+          Update project {project?.name ?? 'heh'}
+        </h2>
       </div>
 
       <div className="space-y-5">

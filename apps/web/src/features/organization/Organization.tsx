@@ -8,7 +8,6 @@ import {
 } from '../../hooks/useOrganizations';
 import { useProjects } from '../../hooks/useProjects';
 
-import { Spinner } from '../../ui/Spinner';
 import Modal from '../../ui/Modal';
 import { Button } from '../../ui/Button';
 import ConfirmDialog from '../../ui/ConfirmDialog';
@@ -16,10 +15,10 @@ import UpdateOrganizationForm from '../../features/organization/UpdateOrganizati
 import { Tooltip } from '../../ui/Tooltip';
 import type { Organization } from '../../types/organization';
 
+/* ---------- Page ---------- */
+
 function OrganizationContent() {
-  const { organizationId } = useParams<{
-    organizationId: string;
-  }>();
+  const { organizationId } = useParams<{ organizationId: string }>();
 
   const organization = useOutletContext<Organization>();
 
@@ -53,116 +52,99 @@ function OrganizationContent() {
 
   if (isLoadingMembership) {
     return (
-      <div className="flex min-h-60 items-center justify-center">
-        <Spinner />
+      <div className="space-y-6">
+        <div className="h-32 animate-pulse rounded-3xl bg-surface" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="h-32 animate-pulse rounded-2xl bg-surface"
+            />
+          ))}
+        </div>
       </div>
     );
-  }
-
-  if (canViewMembers && isLoadingMembers) {
-    return (
-      <div className="flex min-h-60 items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
-  if (canViewMembers && membersError) {
-    return <ErrorState message="Failed to load members." />;
-  }
-
-  if (isProjectError) {
-    return <ErrorState message="Failed to load projects." />;
   }
 
   return (
-    <div className="mx-auto max-w-7xl p-6 lg:p-8">
+    <div className="space-y-6">
       {/* Header */}
-      <header className="mb-10">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex min-w-0 items-start gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <section className="relative overflow-hidden rounded-3xl border border-border bg-linear-to-br from-primary/10 via-surface to-surface px-8 py-8 shadow-sm">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
+
+        <div className="relative flex flex-wrap items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-4">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <Users className="h-7 w-7" />
-            </div>
+            </span>
 
             <div className="min-w-0">
-              <p className="text-sm font-medium text-muted-foreground">
-                Organization
-              </p>
-
-              <h1 className="mt-1 truncate text-3xl font-semibold tracking-tight">
+              <h1 className="truncate text-3xl font-semibold tracking-tight text-primary">
                 {organization.name}
               </h1>
 
-              {organization.description ? (
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  {organization.description}
-                </p>
-              ) : (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Manage your projects and team members.
-                </p>
-              )}
+              <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground">
+                {organization.description ||
+                  'Manage your projects and team members.'}
+              </p>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex shrink-0 items-center gap-1">
-            {canEditOrganization && (
+          {canEditOrganization && (
+            <div className="flex items-center gap-1 rounded-xl border border-border bg-surface p-1 shadow-sm">
               <Tooltip text="Edit organization" position="bottom-left">
                 <Modal.Open opens="update-org">
-                  <Button
-                    variant="ghost"
-                    type="button"
-                    className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                  >
+                  <Button variant="ghost" type="button">
                     <Pencil className="h-5 w-5" />
                   </Button>
                 </Modal.Open>
               </Tooltip>
-            )}
 
-            {isOwner && (
-              <Tooltip text="Delete organization" position="bottom-left">
-                <Modal.Open opens="delete-org">
-                  <Button
-                    variant="ghost"
-                    type="button"
-                    className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-danger/10 hover:text-danger"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
-                </Modal.Open>
-              </Tooltip>
-            )}
-          </div>
+              {isOwner && (
+                <>
+                  <div className="mx-1 h-5 w-px bg-border" />
+
+                  <Tooltip text="Delete organization" position="bottom-left">
+                    <Modal.Open opens="delete-org">
+                      <Button variant="ghost" type="button">
+                        <Trash2 className="h-5 w-5 text-red-500" />
+                      </Button>
+                    </Modal.Open>
+                  </Tooltip>
+                </>
+              )}
+            </div>
+          )}
         </div>
-      </header>
+      </section>
 
       {/* Overview */}
-      <section>
-        <div className="mb-5">
-          <h2 className="text-lg font-semibold">Overview</h2>
-
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold text-primary">Overview</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             A summary of your organization and its resources.
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard
-            navTo="projects"
-            title="Projects"
-            value={isLoadingProjects ? '—' : String(projects?.data.length ?? 0)}
-            icon={FolderKanban}
+          <StatTile
+            to="projects"
+            label="Projects"
+            icon={<FolderKanban className="h-4 w-4" />}
+            count={projects?.data.length ?? 0}
+            isPending={isLoadingProjects}
+            isError={isProjectError}
           />
 
           {canViewMembers && (
-            <StatCard
-              navTo="members"
-              title="Members"
-              value={String(members?.length ?? 0)}
-              icon={Users}
+            <StatTile
+              to="members"
+              label="Members"
+              icon={<Users className="h-4 w-4" />}
+              count={members?.length ?? 0}
+              isPending={isLoadingMembers}
+              isError={membersError}
             />
           )}
         </div>
@@ -176,6 +158,7 @@ function OrganizationContent() {
       <Modal.Window name="delete-org">
         <ConfirmDialog
           resourceName={`Organization ${organization.name}`}
+          description="This organization and all of its projects will be permanently deleted."
           onConfirm={() => deleteOrg(organization.id)}
           disabled={isDeletingOrg}
         />
@@ -184,50 +167,50 @@ function OrganizationContent() {
   );
 }
 
-function StatCard({
-  title,
-  value,
-  icon: Icon,
-  disabled = false,
-  navTo,
+/* ---------- Stat tile ---------- */
+
+function StatTile({
+  to,
+  label,
+  icon,
+  count,
+  isPending,
+  isError,
 }: {
-  title: string;
-  value: string;
-  icon: typeof FolderKanban;
-  disabled?: boolean;
-  navTo: string;
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+  count: number;
+  isPending: boolean;
+  isError: boolean;
 }) {
   return (
     <NavLink
-      to={navTo}
-      className={`group rounded-xl border bg-surface p-5 transition-all duration-200 ${
-        disabled
-          ? 'opacity-60'
-          : 'hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-sm'
-      }`}
+      to={to}
+      className="group rounded-2xl border border-border bg-surface p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
     >
-      <div className="flex items-center justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-          <Icon className="h-5 w-5" />
-        </div>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
 
-        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Total
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition group-hover:scale-110">
+          {icon}
         </span>
       </div>
 
-      <p className="mt-5 text-sm text-muted-foreground">{title}</p>
-
-      <p className="mt-1 text-3xl font-semibold tracking-tight">{value}</p>
+      {isError ? (
+        <p className="mt-4 text-sm font-medium text-red-500">
+          Failed to load {label.toLowerCase()}.
+        </p>
+      ) : isPending ? (
+        <div className="mt-4 h-9 w-16 animate-pulse rounded-lg bg-muted" />
+      ) : (
+        <p className="mt-3 text-3xl font-semibold tracking-tight text-primary">
+          {count}
+        </p>
+      )}
     </NavLink>
-  );
-}
-
-function ErrorState({ message }: { message: string }) {
-  return (
-    <div className="rounded-xl border border-danger/20 bg-danger/5 p-6 text-sm text-danger">
-      {message}
-    </div>
   );
 }
 

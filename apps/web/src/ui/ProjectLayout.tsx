@@ -26,7 +26,7 @@ function ProjectLayout() {
     return <Navigate to="/organizations" replace />;
   }
 
-  return <Outlet context={{ project }} />;
+  return <Outlet context={project} />;
 }
 
 export default ProjectLayout;

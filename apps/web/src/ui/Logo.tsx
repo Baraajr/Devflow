@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom';
 
 function Logo() {
   return (
-    <div>
+    <div className="px-6">
       <Link to="/" className="text-xl font-bold">
         DevFlow
-      </Link>{' '}
+      </Link>
     </div>
   );
 }

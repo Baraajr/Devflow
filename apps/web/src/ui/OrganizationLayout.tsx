@@ -33,7 +33,7 @@ function OrganizationLayout() {
   return (
     <div className="min-h-full">
       <main className="mx-auto w-full max-w-7xl p-4 md:p-6">
-        <Outlet context={{ organization }} />
+        <Outlet context={organization} />
       </main>
     </div>
   );

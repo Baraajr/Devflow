@@ -21,44 +21,61 @@ function Header() {
 
   return (
     <header className="relative border-b bg-surface">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+      <div className="mx-auto flex h-16  items-center justify-between">
         <Logo />
 
-        <div className="flex items-center gap-4">
-          <Button
-            onClick={() => setShowNotification((show) => !show)}
-            variant="ghost"
-            className="relative"
-            aria-label="Notifications"
-          >
-            <Bell size={18} />
+        <div className="flex items-center gap-2 px-4">
+          {/* Notifications */}
+          <div className="relative">
+            <button
+              onClick={() => setShowNotification((show) => !show)}
+              aria-label="Notifications"
+              className="relative flex h-9 w-9 items-center justify-center rounded-lg
+        text-muted-foreground transition-colors
+        hover:bg-muted hover:text-foreground"
+            >
+              <Bell size={18} strokeWidth={1.8} />
+              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-surface" />
+            </button>
 
-            <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-danger" />
-          </Button>
+            {showNotification && (
+              <NotificationCenter onClose={() => setShowNotification(false)} />
+            )}
+          </div>
 
-          {showNotification && (
-            <NotificationCenter onClose={() => setShowNotification(false)} />
-          )}
-
-          <Button
-            variant="ghost"
+          {/* Theme toggle */}
+          <button
             onClick={() => setIsDark((prev) => !prev)}
             aria-label="Toggle theme"
+            className="flex h-9 w-9 items-center justify-center rounded-lg
+      text-muted-foreground transition-colors
+      hover:bg-muted hover:text-foreground"
           >
-            {isDark ? <Sun size={18} /> : <Moon size={18} />}
-          </Button>
+            {isDark ? (
+              <Sun size={18} strokeWidth={1.8} />
+            ) : (
+              <Moon size={18} strokeWidth={1.8} />
+            )}
+          </button>
 
+          <div className="mx-1 h-6 w-px bg-border" />
+
+          {/* Account */}
           <Link
             to="/account"
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            className="hidden rounded-lg px-3 py-2 text-sm font-medium
+      text-muted-foreground transition-colors
+      hover:bg-muted hover:text-foreground md:block"
           >
             Account
           </Link>
 
+          {/* Logout */}
           <Button
             variant="danger-ghost"
             onClick={() => logout()}
             loading={isLoggingOut}
+            className="hidden"
           >
             Logout
           </Button>

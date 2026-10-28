@@ -1,10 +1,13 @@
 import { useParams } from 'react-router-dom';
 import { useState } from 'react';
+import { Plus, Users } from 'lucide-react';
 
 import Modal from '../../ui/Modal';
 import ConfirmDialog from '../../ui/ConfirmDialog';
 import MemberRow from '../../ui/MemberRow';
-import { Spinner } from '../../ui/Spinner';
+import { Button } from '../../ui/Button';
+import MemberActions from '../../ui/MemberActions';
+import { useModal } from '../../ui/ModalContext';
 
 import AddProjectMemberForm from './AddProjectMemberForm';
 import ChangeMemberRoleForm from './ChangeMemberRoleForm';
@@ -13,12 +16,9 @@ import {
   useProjectMembers,
   useRemoveProjectMember,
 } from '../../hooks/useProjects';
+import { useOrganizationMembers } from '../../hooks/useOrganizations';
 
 import type { ProjectMember } from '../../types/project';
-import { Button } from '../../ui/Button';
-import { useOrganizationMembers } from '../../hooks/useOrganizations';
-import { useModal } from '../../ui/ModalContext';
-import MemberActions from '../../ui/MemberActions';
 
 function ProjectMembers() {
   const { close } = useModal();
@@ -36,81 +36,112 @@ function ProjectMembers() {
 
   const { mutate: removeMember, isPending: isRemovingMember } =
     useRemoveProjectMember(projectId!);
+
   const {
     data: projectMembers,
     isPending: isMembersPending,
     isError: isMembersError,
   } = useProjectMembers(projectId);
 
+  const count = projectMembers?.length ?? 0;
+
   return (
-    <section className="mx-auto max-w-7xl p-6 lg:p-8 space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-gray-900">
-            Project Members
-          </h2>
+    <div className="space-y-6">
+      {/* Header */}
+      <section className="relative overflow-hidden rounded-3xl border border-border bg-linear-to-br from-primary/10 via-surface to-surface px-8 py-8 shadow-sm">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
 
-          <p className="text-sm text-muted-foreground">
-            People collaborating on this project.
-          </p>
-        </div>
+        <div className="relative flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-semibold tracking-tight text-primary">
+                Members
+              </h1>
 
-        <div className="flex items-center gap-4">
-          <p className="text-sm text-muted-foreground">
-            {projectMembers?.length ?? 0}{' '}
-            {projectMembers?.length === 1 ? 'member' : 'members'}
-          </p>
+              {!isMembersPending && !isMembersError && (
+                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                  {count}
+                </span>
+              )}
+            </div>
+
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              People collaborating on this project.
+            </p>
+          </div>
 
           <Modal.Open opens="add-proj-member">
-            <Button type="button">Add Member</Button>
+            <Button type="button">
+              <Plus size={18} />
+              Add member
+            </Button>
           </Modal.Open>
         </div>
-      </div>
+      </section>
 
-      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-        {isMembersPending ? (
-          <div className="flex justify-center p-8">
-            <Spinner />
-          </div>
-        ) : isMembersError ? (
-          <div className="p-6 text-center text-sm text-destructive">
+      {/* List */}
+      {isMembersPending ? (
+        <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center gap-4 p-5">
+              <div className="h-10 w-10 animate-pulse rounded-full bg-muted" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 w-1/3 animate-pulse rounded bg-muted" />
+                <div className="h-3 w-1/4 animate-pulse rounded bg-muted" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : isMembersError ? (
+        <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
+          <p className="text-sm font-medium text-red-500">
             Failed to load project members.
-          </div>
-        ) : !projectMembers || projectMembers.length === 0 ? (
-          <EmptyMembersState />
-        ) : (
-          <div className="divide-y ">
-            {projectMembers.map((member) => {
-              const name =
-                `${member.user?.firstName ?? ''} ${
-                  member.user?.lastName ?? ''
-                }`.trim() || 'Unknown Member';
+          </p>
+        </div>
+      ) : count === 0 ? (
+        <div className="flex flex-col items-center rounded-2xl border border-dashed border-border bg-surface/50 px-6 py-14 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Users className="h-5 w-5" />
+          </span>
 
-              const email = member.user?.email ?? 'No email provided';
+          <h2 className="mt-4 font-semibold text-primary">No members yet</h2>
 
-              return (
-                <MemberRow
-                  key={member.user.id}
-                  name={name}
-                  email={email}
-                  role={member.role}
-                  profileImage={member.user?.profileImage}
-                  actions={
-                    <MemberActions
-                      changeRoleModal="update-member-role"
-                      removeModal="delete-member"
-                      onChangeRole={() => setSelectedMember(member)}
-                      onRemove={() => setSelectedMember(member)}
-                    />
-                  }
-                />
-              );
-            })}
-          </div>
-        )}
-      </div>
+          <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+            There are no members assigned to this project.
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+          {projectMembers.map((member) => {
+            const name =
+              `${member.user?.firstName ?? ''} ${
+                member.user?.lastName ?? ''
+              }`.trim() || 'Unknown Member';
 
-      {/* Add Project Member */}
+            const email = member.user?.email ?? 'No email provided';
+
+            return (
+              <MemberRow
+                key={member.user.id}
+                name={name}
+                email={email}
+                role={member.role}
+                profileImage={member.user?.profileImage}
+                actions={
+                  <MemberActions
+                    changeRoleModal="update-member-role"
+                    removeModal="delete-member"
+                    onChangeRole={() => setSelectedMember(member)}
+                    onRemove={() => setSelectedMember(member)}
+                  />
+                }
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Modals */}
       <Modal.Window name="add-proj-member">
         <AddProjectMemberForm
           orgMembers={orgMembers ?? []}
@@ -118,7 +149,6 @@ function ProjectMembers() {
         />
       </Modal.Window>
 
-      {/* Update Member Role */}
       <Modal.Window name="update-member-role">
         {selectedMember ? (
           <ChangeMemberRoleForm
@@ -129,7 +159,6 @@ function ProjectMembers() {
         ) : null}
       </Modal.Window>
 
-      {/* Remove Member */}
       <Modal.Window name="delete-member">
         <ConfirmDialog
           title={`Remove ${
@@ -150,19 +179,8 @@ function ProjectMembers() {
           disabled={isRemovingMember}
         />
       </Modal.Window>
-    </section>
-  );
-}
-export default ProjectMembers;
-
-function EmptyMembersState() {
-  return (
-    <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
-      <h3 className="font-medium text-gray-900">No members</h3>
-
-      <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-        There are no members assigned to this project.
-      </p>
     </div>
   );
 }
+
+export default ProjectMembers;

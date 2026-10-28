@@ -23,6 +23,7 @@ import LabelsPage from './pages/LabelsPage';
 import ProjectLayout from './ui/ProjectLayout';
 import SprintsPage from './pages/SprintsPage';
 import SprintPage from './pages/SprintPage';
+import LandingLayout from './ui/LandingLayout';
 
 function App() {
   return (
@@ -30,9 +31,11 @@ function App() {
       <Routes>
         {/* Public routes */}
         <Route element={<PublicRoute />}>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route element={<LandingLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+          </Route>
         </Route>
 
         {/* Protected routes */}

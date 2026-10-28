@@ -15,7 +15,7 @@ const features = [
 
 function AuthLayout({ title, description, children }: AuthLayoutProps) {
   return (
-    <main className="grid min-h-dvh md:grid-cols-2">
+    <main className="grid min-h-[calc(100dvh-4.1rem)] md:grid-cols-2">
       {/* Marketing panel */}
       <section className="relative hidden flex-col justify-between overflow-hidden border-l bg-muted/30 p-10 md:flex lg:p-16">
         {/* Decorative background */}
@@ -27,7 +27,6 @@ function AuthLayout({ title, description, children }: AuthLayoutProps) {
           aria-hidden="true"
           className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-primary/10 blur-3xl"
         />
-
         <div className="relative z-10">
           <a
             href="/"
@@ -36,7 +35,6 @@ function AuthLayout({ title, description, children }: AuthLayoutProps) {
             Devflow
           </a>
         </div>
-
         <div className="relative z-10 max-w-lg space-y-8">
           <div className="space-y-4">
             <h2 className="text-5xl font-bold leading-[1.05] tracking-tight lg:text-6xl">
@@ -63,7 +61,6 @@ function AuthLayout({ title, description, children }: AuthLayoutProps) {
             ))}
           </ul>
         </div>
-
         <p className="relative z-10 text-xs text-muted-foreground">
           Devflow · Engineering workspace
         </p>
@@ -79,7 +76,7 @@ function AuthLayout({ title, description, children }: AuthLayoutProps) {
             Devflow
           </a>
 
-          <div className="rounded-2xl border bg-card p-6 shadow-sm sm:p-8">
+          <div className="rounded-2xl border bg-card px-6 py-4 shadow-sm sm:px-8">
             <div className="mb-8 space-y-2">
               <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
               <p className="text-sm text-muted-foreground">{description}</p>

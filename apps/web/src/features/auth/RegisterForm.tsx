@@ -37,7 +37,7 @@ function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <FormField
           label="First name"

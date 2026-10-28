@@ -9,7 +9,7 @@ function AppLayout() {
       <Sidebar />
 
       <div className="min-w-0 flex-1">
-        <Header />
+        <Header isAuthenticated={true} />
 
         <main className="min-w-0 pb-20 md:pb-0">
           <Outlet />

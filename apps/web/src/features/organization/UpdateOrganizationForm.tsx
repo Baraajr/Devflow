@@ -12,12 +12,16 @@ import {
   type CreateOrgFormValues,
 } from './organization.schema';
 import { useUpdateOrganization } from '../../hooks/useOrganizations';
+import { useOutletContext } from 'react-router-dom';
+import type { Organization } from '../../types/organization';
 
 interface UpdateOrganizationFormProps {
   orgId: string;
 }
 
 function UpdateOrganizationForm({ orgId }: UpdateOrganizationFormProps) {
+  const organization = useOutletContext<Organization>();
+
   const updateMutation = useUpdateOrganization();
   const { close } = useModal();
 
@@ -28,6 +32,10 @@ function UpdateOrganizationForm({ orgId }: UpdateOrganizationFormProps) {
   } = useForm<CreateOrgFormValues>({
     resolver: zodResolver(createOrgSchema),
     mode: 'onChange',
+    defaultValues: {
+      name: organization.name,
+      description: organization.description ?? '',
+    },
   });
 
   const onSubmit = async (data: CreateOrgFormValues) => {

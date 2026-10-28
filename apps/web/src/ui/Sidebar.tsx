@@ -1,15 +1,16 @@
-import { NavLink, useParams } from 'react-router-dom';
 import {
+  ArrowLeft,
+  Building2,
+  CalendarRange,
+  CircleDot,
   FolderKanban,
   LayoutDashboard,
-  Users,
-  Building2,
   Mail,
-  ArrowLeft,
-  CircleDot,
   Tags,
-  CalendarRange,
+  Users,
 } from 'lucide-react';
+import { NavLink, useParams } from 'react-router-dom';
+
 import { useAuth } from '../hooks/useAuth';
 import { useMyMembership } from '../hooks/useOrganizations';
 
@@ -17,6 +18,7 @@ function Sidebar() {
   const { user } = useAuth();
   const { organizationId, projectId } = useParams();
   const { data: orgMember } = useMyMembership(organizationId);
+
   const canView = orgMember?.role === 'owner' || orgMember?.role === 'manager';
 
   const navigation = projectId
@@ -61,7 +63,6 @@ function Sidebar() {
             href: `/organizations/${organizationId}/projects`,
             icon: FolderKanban,
           },
-
           ...(canView
             ? [
                 {
@@ -104,17 +105,23 @@ function Sidebar() {
 
   return (
     <aside className="hidden w-64 shrink-0 border-r border-border bg-surface md:block">
-      {/* Workspace */}
       <div className="flex h-16 items-center gap-3 border-b border-border px-6">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-semibold uppercase text-primary">
-          {user?.firstName?.[0] ?? 'W'}
-        </span>
+        {user?.profileImage ? (
+          <img
+            src={user.profileImage}
+            alt="Profile"
+            className="size-9 shrink-0 rounded-xl object-cover"
+          />
+        ) : (
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-semibold uppercase text-primary">
+            {user?.firstName?.[0] ?? 'W'}
+          </span>
+        )}
 
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Workspace
           </p>
-
           <h1 className="truncate text-sm font-semibold text-primary">
             {user?.firstName}'s Workspace
           </h1>

@@ -20,6 +20,7 @@ function CreateOrganizationForm() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<CreateOrgFormValues>({
     resolver: zodResolver(createOrgSchema),
@@ -30,6 +31,7 @@ function CreateOrganizationForm() {
     try {
       await createMutation.mutateAsync(data);
       close();
+      reset();
     } catch {
       // Error toast is already handled by useCreateOrg
     }

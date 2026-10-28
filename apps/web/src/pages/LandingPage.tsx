@@ -14,31 +14,7 @@ import Logo from '../ui/Logo';
 function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <Logo />
-
-          <nav className="flex items-center gap-2">
-            <Link
-              to="/login"
-              className="rounded-md px-4 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Log in
-            </Link>
-
-            <Link
-              to="/register"
-              className="rounded-md bg-primary px-2 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              Get started
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <main className="pt-16">
-        {/* Hero */}
+      <main>
         <section className="relative overflow-hidden border-b border-border">
           {/* Background */}
           <div className="pointer-events-none absolute inset-0">
@@ -58,7 +34,7 @@ function LandingPage() {
             />
           </div>
 
-          <div className="relative mx-auto max-w-7xl px-6 pb-20 pt-20 sm:pb-24 sm:pt-28">
+          <div className="relative mx-auto max-w-7xl px-6 pb-16 pt-16 sm:pb-20 sm:pt-24 lg:pb-24 lg:pt-28">
             <div className="mx-auto max-w-4xl text-center">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm text-muted-foreground">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -98,7 +74,6 @@ function LandingPage() {
                 Free for small teams · No credit card required
               </p>
             </div>
-
             {/* Product Preview */}
             <div className="mx-auto mt-16 max-w-6xl">
               <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-2xl">

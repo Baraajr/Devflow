@@ -5,10 +5,10 @@ import { Project } from '../projects/entities/project.entity';
 import { SprintController } from './sprint.controller';
 import { Sprint } from './entities/sprint.entity';
 import { SprintService } from './sprint.service';
-import { ProjectMember } from '../projects/entities/project-member.entity';
+import { ProjectModule } from '../projects/project.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Sprint, Project, ProjectMember])],
+  imports: [ProjectModule, TypeOrmModule.forFeature([Sprint, Project])],
   controllers: [SprintController],
   providers: [SprintService],
   exports: [SprintService],

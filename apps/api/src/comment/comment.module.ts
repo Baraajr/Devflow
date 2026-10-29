@@ -4,14 +4,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommentsController } from './comment.controller';
 import { CommentsService } from './comment.service';
 
-import { ProjectMember } from '../projects/entities/project-member.entity';
 import { IssueComment } from './entities/comment.entity';
 import { IssueModule } from '../issue/issue.module';
+import { ProjectModule } from '../projects/project.module';
 
 @Module({
   imports: [
+    ProjectModule,
     IssueModule,
-    TypeOrmModule.forFeature([IssueComment, ProjectMember]),
+    TypeOrmModule.forFeature([IssueComment]),
   ],
   controllers: [CommentsController],
   providers: [CommentsService],

@@ -7,10 +7,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { ProjectMember } from '../projects/entities/project-member.entity';
 import { ProjectRole } from '../projects/enums/project-role.enum';
 import { Issue } from './entities/issue.entity';
 import { Label } from '../label/entities/label.entity';
+import { ProjectAccessService } from '../projects/project-access.service';
 
 @Injectable()
 export class IssueLabelsService {
@@ -21,21 +21,14 @@ export class IssueLabelsService {
     @InjectRepository(Label)
     private readonly labelsRepository: Repository<Label>,
 
-    @InjectRepository(ProjectMember)
-    private readonly projectMemberRepository: Repository<ProjectMember>,
+    private readonly projectAccessService: ProjectAccessService,
   ) {}
 
   private async requireLabelManager(projectId: string, userId: string) {
-    const member = await this.projectMemberRepository.findOne({
-      where: {
-        projectId,
-        userId,
-      },
-    });
-
-    if (!member) {
-      throw new NotFoundException('Issue not found');
-    }
+    const member = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      userId,
+    );
 
     if (
       member.role !== ProjectRole.ADMIN &&

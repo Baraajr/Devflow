@@ -7,11 +7,11 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { ProjectMember } from '../projects/entities/project-member.entity';
 import { ProjectRole } from '../projects/enums/project-role.enum';
 import { CreateLabelDto } from './dtos/create-label.dto';
 import { UpdateLabelDto } from './dtos/update-label.dto';
 import { Label } from './entities/label.entity';
+import { ProjectAccessService } from '../projects/project-access.service';
 
 @Injectable()
 export class LabelsService {
@@ -19,27 +19,14 @@ export class LabelsService {
     @InjectRepository(Label)
     private readonly labelsRepository: Repository<Label>,
 
-    @InjectRepository(ProjectMember)
-    private readonly projectMemberRepository: Repository<ProjectMember>,
+    private readonly projectAccessService: ProjectAccessService,
   ) {}
 
-  private async getProjectMember(projectId: string, userId: string) {
-    const member = await this.projectMemberRepository.findOne({
-      where: {
-        projectId,
-        userId,
-      },
-    });
-
-    if (!member) {
-      throw new NotFoundException('Project not found');
-    }
-
-    return member;
-  }
-
   private async requireLabelManager(projectId: string, userId: string) {
-    const member = await this.getProjectMember(projectId, userId);
+    const member = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      userId,
+    );
 
     if (
       member.role !== ProjectRole.ADMIN &&
@@ -54,7 +41,10 @@ export class LabelsService {
   }
 
   private async requireLabelAdmin(projectId: string, userId: string) {
-    const member = await this.getProjectMember(projectId, userId);
+    const member = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      userId,
+    );
 
     if (member.role !== ProjectRole.ADMIN) {
       throw new ForbiddenException('Only project admins can delete labels');
@@ -89,7 +79,7 @@ export class LabelsService {
   }
 
   async findAll(projectId: string, userId: string) {
-    await this.getProjectMember(projectId, userId);
+    await this.projectAccessService.ensureProjectMember(projectId, userId);
 
     return this.labelsRepository.find({
       where: { projectId },
@@ -100,7 +90,7 @@ export class LabelsService {
   }
 
   async findOne(projectId: string, labelId: string, userId: string) {
-    await this.getProjectMember(projectId, userId);
+    await this.projectAccessService.ensureProjectMember(projectId, userId);
 
     const label = await this.labelsRepository.findOne({
       where: {

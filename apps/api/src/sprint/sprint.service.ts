@@ -7,13 +7,13 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { Project } from '../projects/entities/project.entity';
-import { ProjectMember } from '../projects/entities/project-member.entity';
 import { ProjectRole } from '../projects/enums/project-role.enum';
 import { CreateSprintDto } from './dtos/create-sprint.dto';
 import { UpdateSprintDto } from './dtos/update-sprint.dto';
 import { Sprint } from './entities/sprint.entity';
 import { SprintStatus } from './enums/sprint-status.enum';
+import { ProjectAccessService } from '../projects/project-access.service';
+import { ProjectService } from '../projects/project.service';
 
 @Injectable()
 export class SprintService {
@@ -21,27 +21,16 @@ export class SprintService {
     @InjectRepository(Sprint)
     private readonly sprintRepository: Repository<Sprint>,
 
-    @InjectRepository(Project)
-    private readonly projectRepository: Repository<Project>,
+    private readonly projectService: ProjectService,
 
-    @InjectRepository(ProjectMember)
-    private readonly projectMemberRepository: Repository<ProjectMember>,
+    private readonly projectAccessService: ProjectAccessService,
   ) {}
 
-  private async getProjectMember(projectId: string, userId: string) {
-    const member = await this.projectMemberRepository.findOne({
-      where: { projectId, userId },
-    });
-
-    if (!member) {
-      throw new NotFoundException('Project not found');
-    }
-
-    return member;
-  }
-
   private async requireSprintManager(projectId: string, userId: string) {
-    const member = await this.getProjectMember(projectId, userId);
+    const member = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      userId,
+    );
 
     if (
       member.role !== ProjectRole.ADMIN &&
@@ -56,7 +45,10 @@ export class SprintService {
   }
 
   private async requireSprintAdmin(projectId: string, userId: string) {
-    const member = await this.getProjectMember(projectId, userId);
+    const member = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      userId,
+    );
 
     if (member.role !== ProjectRole.ADMIN) {
       throw new ForbiddenException('Only project admins can delete sprints');
@@ -66,9 +58,7 @@ export class SprintService {
   }
 
   async create(projectId: string, userId: string, dto: CreateSprintDto) {
-    const project = await this.projectRepository.findOne({
-      where: { id: projectId },
-    });
+    const project = await this.projectService.findOne(userId, projectId);
 
     if (!project) {
       throw new NotFoundException('Project not found');
@@ -95,7 +85,7 @@ export class SprintService {
   }
 
   async findAll(projectId: string, userId: string) {
-    await this.getProjectMember(projectId, userId);
+    await this.projectAccessService.ensureProjectMember(projectId, userId);
 
     return this.sprintRepository.find({
       where: { projectId },
@@ -106,7 +96,7 @@ export class SprintService {
   }
 
   async findOne(projectId: string, sprintId: string, userId: string) {
-    await this.getProjectMember(projectId, userId);
+    await this.projectAccessService.ensureProjectMember(projectId, userId);
 
     const sprint = await this.sprintRepository.findOne({
       where: {

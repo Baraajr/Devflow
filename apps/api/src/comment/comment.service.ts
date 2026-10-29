@@ -7,12 +7,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { ProjectMember } from '../projects/entities/project-member.entity';
 import { ProjectRole } from '../projects/enums/project-role.enum';
 import { IssueService } from '../issue/issue.service';
 import { CreateCommentDto } from './dtos/create-comment.dto';
 import { UpdateCommentDto } from './dtos/update-comment.dto';
 import { IssueComment } from './entities/comment.entity';
+import { ProjectAccessService } from '../projects/project-access.service';
 
 @Injectable()
 export class CommentsService {
@@ -22,24 +22,8 @@ export class CommentsService {
 
     private readonly issueService: IssueService,
 
-    @InjectRepository(ProjectMember)
-    private readonly projectMembersRepository: Repository<ProjectMember>,
+    private readonly projectAccessService: ProjectAccessService,
   ) {}
-
-  private async getProjectMember(projectId: string, userId: string) {
-    const member = await this.projectMembersRepository.findOne({
-      where: {
-        projectId,
-        userId,
-      },
-    });
-
-    if (!member) {
-      throw new ForbiddenException('You are not a member of this project');
-    }
-
-    return member;
-  }
 
   async create(
     projectId: string,
@@ -112,7 +96,10 @@ export class CommentsService {
     userId: string,
     dto: UpdateCommentDto,
   ) {
-    const member = await this.getProjectMember(projectId, userId);
+    const member = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      userId,
+    );
 
     await this.issueService.findOne(projectId, issueId, userId);
 
@@ -151,7 +138,10 @@ export class CommentsService {
     commentId: string,
     userId: string,
   ) {
-    const member = await this.getProjectMember(projectId, userId);
+    const member = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      userId,
+    );
 
     await this.issueService.findOne(projectId, issueId, userId);
 

@@ -10,13 +10,13 @@ import { Repository } from 'typeorm';
 import { Issue } from './entities/issue.entity';
 import { CreateIssueDto } from './dtos/create-issue.dto';
 import { UpdateIssueDto } from './dtos/update-issue.dto';
-import { ProjectMember } from '../projects/entities/project-member.entity';
 import { ProjectRole } from '../projects/enums/project-role.enum';
 import { IssuePriority } from './enums/Issue-priority.enum';
 import { IssueStatus } from './enums/Issue-status.enum';
 import { ApiFeatures } from '../common/utils/api-features';
 import type { QueryString } from '../common/types/types';
 import { IssueListResponse } from './types/issues';
+import { ProjectAccessService } from '../projects/project-access.service';
 
 @Injectable()
 export class IssueService {
@@ -24,8 +24,7 @@ export class IssueService {
     @InjectRepository(Issue)
     private readonly issueRepository: Repository<Issue>,
 
-    @InjectRepository(ProjectMember)
-    private readonly projectMemberRepository: Repository<ProjectMember>,
+    private readonly projectAccessService: ProjectAccessService,
   ) {}
 
   async create(
@@ -33,7 +32,10 @@ export class IssueService {
     userId: string,
     dto: CreateIssueDto,
   ): Promise<Issue> {
-    const member = await this.getProjectMember(projectId, userId);
+    const member = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      userId,
+    );
 
     if (
       member.role !== ProjectRole.ADMIN &&
@@ -67,7 +69,7 @@ export class IssueService {
     userId: string,
     queryString: QueryString,
   ): Promise<IssueListResponse> {
-    await this.getProjectMember(projectId, userId);
+    await this.projectAccessService.ensureProjectMember(projectId, userId);
 
     const query = this.issueRepository
       .createQueryBuilder('issue')
@@ -96,7 +98,7 @@ export class IssueService {
     issueId: string,
     userId: string,
   ): Promise<Issue> {
-    await this.getProjectMember(projectId, userId);
+    await this.projectAccessService.ensureProjectMember(projectId, userId);
 
     const issue = await this.issueRepository.findOne({
       where: {
@@ -124,7 +126,10 @@ export class IssueService {
     userId: string,
     dto: UpdateIssueDto,
   ): Promise<Issue> {
-    const member = await this.getProjectMember(projectId, userId);
+    const member = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      userId,
+    );
 
     if (
       member.role !== ProjectRole.ADMIN &&
@@ -182,7 +187,10 @@ export class IssueService {
     issueId: string,
     userId: string,
   ): Promise<void> {
-    const member = await this.getProjectMember(projectId, userId);
+    const member = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      userId,
+    );
 
     if (member.role !== ProjectRole.ADMIN) {
       throw new ForbiddenException('Only project admins can delete issues');
@@ -208,7 +216,10 @@ export class IssueService {
     userId: string,
     assigneeId: string,
   ): Promise<Issue> {
-    const member = await this.getProjectMember(projectId, userId);
+    const member = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      userId,
+    );
 
     if (member.role !== ProjectRole.ADMIN) {
       throw new ForbiddenException(
@@ -227,7 +238,10 @@ export class IssueService {
       throw new NotFoundException('Issue not found');
     }
 
-    const assignee = await this.ensureProjectMember(projectId, assigneeId);
+    const assignee = await this.projectAccessService.ensureProjectMember(
+      projectId,
+      assigneeId,
+    );
 
     if (assignee.role !== ProjectRole.DEVELOPER) {
       throw new BadRequestException('Issue can be assigned only to developers');
@@ -236,41 +250,6 @@ export class IssueService {
     issue.assigneeId = assigneeId;
 
     return this.issueRepository.save(issue);
-  }
-
-  private async getProjectMember(
-    projectId: string,
-    userId: string,
-  ): Promise<ProjectMember> {
-    const member = await this.projectMemberRepository.findOne({
-      where: {
-        projectId,
-        userId,
-      },
-    });
-
-    if (!member) {
-      throw new ForbiddenException('You are not a member of this project');
-    }
-
-    return member;
-  }
-
-  private async ensureProjectMember(
-    projectId: string,
-    userId: string,
-  ): Promise<ProjectMember> {
-    const member = await this.projectMemberRepository.findOne({
-      where: {
-        projectId,
-        userId,
-      },
-    });
-
-    if (!member) {
-      throw new NotFoundException('Assignee is not a member of this project');
-    }
-    return member;
   }
 
   private async ensureIssueBelongsToProject(
